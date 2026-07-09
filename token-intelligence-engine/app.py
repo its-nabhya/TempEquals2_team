@@ -44,7 +44,11 @@ def main() -> int:
         # Load application configuration
         # ------------------------------------------------------------------
         config = load_config()
-
+        logger.info("Configuration:")
+        logger.info("  Provider      : %s", config.provider)
+        logger.info("  Input Path    : %s", config.input_path)
+        logger.info("  Output Path   : %s", config.output_path)
+        logger.info("  Allowed Models: %s", config.allowed_models)
         # ------------------------------------------------------------------
         # Configure logging
         # ------------------------------------------------------------------
@@ -67,7 +71,6 @@ def main() -> int:
         provider = ProviderFactory.create(config)
 
         pipeline = Pipeline(
-            config=config,
             router=router,
             provider=provider,
         )

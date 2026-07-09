@@ -301,3 +301,54 @@ Examples
 - Fine-tuned routing models
 
 These enhancements should occur inside existing modules rather than by reorganizing the project structure.
+
+
+<!-- Changing gears -->
+
+## Development Philosophy
+
+The architecture is implemented incrementally. Every development milestone results in a runnable system before additional intelligence is introduced.
+
+This ensures that optimization work is always performed on a functioning baseline rather than an incomplete prototype.
+
+
+### TaskContext
+
+Every task is wrapped inside a TaskContext object before entering the pipeline.
+
+TaskContext serves as the shared state passed between pipeline stages, allowing each stage to enrich the task without modifying upstream components.
+
+### Fireworks Integration
+
+Fireworks is accessed through the official OpenAI-compatible SDK.
+
+The SDK is wrapped by a thin FireworksClient abstraction so that external API changes remain isolated from the remainder of the codebase.
+
+
+### Routing Context
+
+The router receives the complete TaskContext rather than only the prompt.
+
+This allows routing decisions to evolve from prompt-based heuristics to feature-based optimization without changing the routing interface.
+
+### Provider Construction
+
+Inference providers do not construct SDK clients directly. Client creation is delegated to the ProviderFactory, ensuring providers depend only on abstractions required for inference.
+
+### Model Registry
+
+The Model Registry maintains metadata for each allowed Fireworks model, including capabilities and availability.
+
+Routing decisions query the registry rather than relying on hardcoded model identifiers.
+
+### Task Classification
+
+Task classification is performed locally using lightweight heuristics.
+
+The router receives a classified TaskContext instead of the raw prompt, allowing routing decisions to focus solely on model selection.
+
+### Local Symbolic Engine
+
+The Local Symbolic Engine executes before model routing.
+
+It attempts deterministic solutions for supported task categories and returns high-confidence answers directly, bypassing external inference when appropriate.
