@@ -614,3 +614,63 @@ Use `.env` only for local development while relying on injected environment vari
 Reason
 
 This preserves compatibility with the evaluation harness while providing a convenient local development experience.
+
+# ED-040
+
+## Structured Runtime Validation
+
+Decision
+
+Validate configuration, filesystem paths, and input data independently before debugging application logic.
+
+Reason
+
+Separating startup validation from business logic simplifies fault isolation and reduces debugging time during integration.
+
+# ED-041
+
+## Baseline Freeze
+
+Decision
+
+Freeze the execution pipeline after the first successful end-to-end run.
+
+Reason
+
+Subsequent development focuses on stabilization, testing, and measurable optimization rather than structural changes.
+
+# ED-042
+
+## Stable Provider Interface
+
+Decision
+
+Keep the inference provider interface limited to `generate(prompt, model)` during the baseline phase.
+
+Reason
+
+A minimal interface reduces coupling and keeps provider implementations interchangeable. Additional metadata such as token usage and latency can be introduced later through richer return objects without affecting routing logic.
+
+# ED-043
+
+## Environment Separation
+
+Decision
+
+Treat local development and hackathon evaluation as separate execution environments.
+
+Reason
+
+The public Fireworks account and the hackathon judging infrastructure may expose different model inventories while sharing the same inference interface. The application therefore relies exclusively on configuration for model selection rather than embedding model identifiers in source code.
+
+# ED-044
+
+## Baseline Freeze After Successful Fireworks Validation
+
+Decision
+
+Freeze the inference architecture after the first successful end-to-end Fireworks execution.
+
+Reason
+
+The architecture has now been validated across configuration, routing, inference, verification, and serialization. Future work should focus on deployment, benchmarking, and optimization rather than structural changes.

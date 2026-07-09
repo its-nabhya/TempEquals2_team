@@ -2,7 +2,7 @@
 Processing pipeline.
 """
 
-
+import logging
 from schemas.context import TaskContext
 from schemas.result import TaskResult
 from schemas.task import Task
@@ -15,7 +15,7 @@ from analysis.features import extract_features
 from analysis.canonicalizer import canonicalize
 from validation.verifier import verify
 
-
+logger = logging.getLogger(__name__)
 class Pipeline:
 
     def __init__(
@@ -57,6 +57,17 @@ class Pipeline:
             model = self.router.select_model(
                 context
             )
+            logger.info(
+                "Task %s classified as %s",
+                task.task_id,
+                context.task_type.name,
+            )
+
+            logger.info(
+                "Selected model: %s",
+                model,
+            )
+                        
             context.selected_model = model
 
             # answer = self.provider.generate(

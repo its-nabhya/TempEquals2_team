@@ -100,3 +100,21 @@ This isolates packaging issues from application issues and shortens the debug cy
 ## Validation Strategy
 
 Before containerization, TACTIC is validated through local execution using the mock provider followed by the Fireworks provider. Docker packaging is performed only after the application executes successfully in a local environment.
+
+## Local Development vs Hackathon Runtime
+
+During local development, `ALLOWED_MODELS` may need to contain fully qualified Fireworks model paths (for example, `accounts/fireworks/models/gemma-4-31b-it`) depending on your Fireworks account.
+
+During hackathon evaluation, the container must use the `ALLOWED_MODELS` environment variable injected by the judging harness without modification.
+
+## Local Development Models
+
+The models available through a personal Fireworks account may differ from the models exposed by the hackathon evaluation environment.
+
+Use locally available Serverless models for development. During evaluation, always rely on the injected `ALLOWED_MODELS` environment variable.
+
+### Milestone
+
+✅ End-to-end Fireworks inference validated.
+
+The application has successfully executed the complete processing pipeline using the Fireworks OpenAI-compatible API and produced a valid `results.json` output.

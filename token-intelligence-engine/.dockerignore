@@ -1,18 +1,32 @@
+# Git
 .git
 .gitignore
 
-.venv
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
 
-__pycache__
+# Virtual Environment
+.venv/
+venv/
 
-*.pyc
-
+# Environment
 .env
 
-tests
+# IDE
+.vscode/
+.idea/
 
-docs
+# Tests & Docs
+tests/
+docs/
 
-output
+# Runtime Output
+output/
+*.log
 
-.vscode
+# OS
+.DS_Store
+Thumbs.db
