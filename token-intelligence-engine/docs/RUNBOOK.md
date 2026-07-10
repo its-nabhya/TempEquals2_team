@@ -78,3 +78,27 @@ Resolution
 For local development, configure `ALLOWED_MODELS` with the model identifier available to your account.
 
 Do not hardcode these values in source code. The hackathon runtime injects its own `ALLOWED_MODELS`.
+
+
+## Milestone 3 — Docker
+
+Goal
+
+Package the application into a Linux container that behaves identically to the hackathon judging environment.
+
+Acceptance Criteria
+
+- Docker image builds successfully.
+- Container starts successfully.
+- Reads `/input/tasks.json`.
+- Writes `/output/results.json`.
+- Exits with code `0`.
+
+
+## Docker Environment Variables
+
+The Docker image intentionally does not rely on `.env`.
+
+For local testing, pass all required environment variables using `docker run -e ...`.
+
+This mirrors the hackathon judging harness, which injects configuration at runtime.

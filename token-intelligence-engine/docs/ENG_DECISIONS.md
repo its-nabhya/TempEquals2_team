@@ -674,3 +674,39 @@ Freeze the inference architecture after the first successful end-to-end Firework
 Reason
 
 The architecture has now been validated across configuration, routing, inference, verification, and serialization. Future work should focus on deployment, benchmarking, and optimization rather than structural changes.
+
+# ED-046
+
+## Runtime Configuration Through Environment Variables
+
+Decision
+
+Docker containers must receive runtime configuration exclusively through environment variables.
+
+Reason
+
+The hackathon evaluation harness injects configuration dynamically. Avoiding `.env` inside the container ensures local testing matches production behavior.
+
+# ED-047
+
+## Fail Fast During Startup
+
+Decision
+
+Validate runtime configuration before loading tasks or constructing the processing pipeline.
+
+Reason
+
+Configuration errors should surface immediately with actionable messages rather than propagating into downstream components.
+
+# ED-048
+
+## Separate Evaluation from Production
+
+Decision
+
+Introduce a dedicated evaluation package that observes pipeline execution without modifying the production output schema.
+
+Reason
+
+Benchmarking and experimentation require additional metrics that are not part of the hackathon submission format. Separating evaluation concerns keeps the production path minimal while enabling rapid experimentation.

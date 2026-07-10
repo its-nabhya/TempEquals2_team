@@ -352,3 +352,23 @@ The router receives a classified TaskContext instead of the raw prompt, allowing
 The Local Symbolic Engine executes before model routing.
 
 It attempts deterministic solutions for supported task categories and returns high-confidence answers directly, bypassing external inference when appropriate.
+
+
+## Startup Validation
+
+A dedicated startup validation phase executes before any task processing begins.
+
+Responsibilities:
+
+- Validate runtime configuration
+- Validate required environment variables
+- Validate input/output paths
+- Detect configuration errors before pipeline execution
+
+This phase intentionally performs no network calls.
+
+## Evaluation Framework
+
+The evaluation framework is intentionally isolated from the production pipeline.
+
+It reuses the production components and observes execution through a callback mechanism, ensuring benchmarking code cannot affect the submission output or runtime behavior.

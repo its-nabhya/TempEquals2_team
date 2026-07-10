@@ -1,0 +1,1 @@
+docker buildx build --platform linux/amd64 -t token-intelligence-engine:v0.1 .

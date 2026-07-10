@@ -31,8 +31,12 @@ def load_tasks(path: str) -> list[Task]:
         "r",
         encoding="utf-8",
     ) as file:
-
-        payload = json.load(file)
+        try:
+            payload = json.load(file)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"Input file '{path}' is empty or contains invalid JSON."
+            ) from exc
 
     return [
         Task(

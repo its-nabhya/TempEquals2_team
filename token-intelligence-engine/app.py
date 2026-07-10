@@ -24,6 +24,7 @@ from core.pipeline import Pipeline
 from inference.factory import ProviderFactory
 from routing.router import Router
 from utils.logger import configure_logging
+from validation.startup import validate_startup
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,12 @@ def main() -> int:
         # Load application configuration
         # ------------------------------------------------------------------
         config = load_config()
+        
+        # ------------------------------------------------------------------
+        # Validate startup configuration
+        # ------------------------------------------------------------------
+        validate_startup(config)
+
         logger.info("Configuration:")
         logger.info("  Provider      : %s", config.provider)
         logger.info("  Input Path    : %s", config.input_path)

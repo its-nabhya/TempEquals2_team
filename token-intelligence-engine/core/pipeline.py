@@ -31,6 +31,7 @@ class Pipeline:
     def run(
         self,
         tasks: list[Task],
+        observer=None,
     ) -> list[TaskResult]:
 
         results = []
@@ -38,25 +39,30 @@ class Pipeline:
         for task in tasks:
 
             context = TaskContext(task)
+
             extract_features(context)
             classify(context)
             canonicalize(context)
 
-            # solve(context) To be done later 
+            # solve(context)  # Enable later
 
             if context.solved_locally:
 
-                results.append(
-                    TaskResult(
-                        task_id=context.task.task_id,
-                        answer=context.local_answer,
-                    )
+                result = TaskResult(
+                    task_id=context.task.task_id,
+                    answer=context.local_answer,
                 )
+
+                if observer is not None:
+                    observer(context, result)
+
+                results.append(result)
                 continue
-            
+
             model = self.router.select_model(
                 context
             )
+
             logger.info(
                 "Task %s classified as %s",
                 task.task_id,
@@ -67,29 +73,29 @@ class Pipeline:
                 "Selected model: %s",
                 model,
             )
-                        
+
             context.selected_model = model
 
-            # answer = self.provider.generate(
-            #     prompt=context.task.prompt,
-            #     model=model,
-            # )
             answer = self.provider.generate(
                 prompt=context.canonical_prompt,
                 model=model,
             )
 
             context.answer = answer
+
             if not verify(context):
                 raise RuntimeError(
                     f"Verification failed for {task.task_id}"
                 )
-            
-            results.append(
-                TaskResult(
-                    task_id=task.task_id,
-                    answer=answer,
-                )
+
+            result = TaskResult(
+                task_id=task.task_id,
+                answer=answer,
             )
+
+            if observer is not None:
+                observer(context, result)
+
+            results.append(result)
 
         return results

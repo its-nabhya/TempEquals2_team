@@ -1,7 +1,5 @@
 """
 Task classifier.
-
-Maps prompts to one of the supported task categories.
 """
 
 from __future__ import annotations
@@ -12,70 +10,97 @@ from constants.task_type import TaskType
 from schemas.context import TaskContext
 
 
-_SUMMARY = re.compile(
-    r"\b(summarise|summarize|summary)\b",
-    re.IGNORECASE,
-)
+PATTERNS: dict[TaskType, tuple[str, ...]] = {
 
-_SENTIMENT = re.compile(
-    r"\b(sentiment|review|positive|negative|neutral)\b",
-    re.IGNORECASE,
-)
+    TaskType.MATH: (
+        r"\bcalculate\b",
+        r"\bsolve\b",
+        r"\bpercentage\b",
+        r"\bpercent\b",
+        r"\baverage\b",
+        r"\bmean\b",
+        r"\bmedian\b",
+        r"\bprobability\b",
+        r"\bhow many\b",
+        r"\bremaining\b",
+        r"\d+\s*[\+\-\*/]\s*\d+",
+    ),
 
-_NER = re.compile(
-    r"\b(named entity|entities|extract)\b",
-    re.IGNORECASE,
-)
+    TaskType.SENTIMENT: (
+        r"\bsentiment\b",
+        r"\bpositive\b",
+        r"\bnegative\b",
+        r"\bneutral\b",
+        r"\breview\b",
+        r"\bopinion\b",
+    ),
 
-_DEBUG = re.compile(
-    r"\b(debug|fix|bug|correct)\b",
-    re.IGNORECASE,
-)
+    TaskType.NER: (
+        r"\bnamed entities\b",
+        r"\bextract\b",
+        r"\bperson\b",
+        r"\borganization\b",
+        r"\blocation\b",
+        r"\bdate\b",
+    ),
 
-_GENERATE = re.compile(
-    r"\b(write|implement|create)\b",
-    re.IGNORECASE,
-)
+    TaskType.SUMMARIZATION: (
+        r"\bsummarize\b",
+        r"\bsummarise\b",
+        r"\bsummary\b",
+        r"\bin one sentence\b",
+    ),
 
-_REASONING = re.compile(
-    r"\b(puzzle|logic|deduce|constraint)\b",
-    re.IGNORECASE,
-)
+    TaskType.CODE_GENERATION: (
+        r"\bwrite\b.*\bfunction\b",
+        r"\bimplement\b",
+        r"\bpython function\b",
+        r"\bwrite code\b",
+    ),
+
+    TaskType.CODE_DEBUGGING: (
+        r"\bdebug\b",
+        r"\bbug\b",
+        r"\bfix\b",
+        r"\berror\b",
+        r"\btraceback\b",
+    ),
+
+    TaskType.LOGICAL_REASONING: (
+        r"\blogic\b",
+        r"\bpuzzle\b",
+        r"\bconstraint\b",
+        r"\bwho owns\b",
+        r"\bdeduce\b",
+    ),
+}
 
 
 def classify(
     context: TaskContext,
 ) -> None:
 
-    prompt = context.task.prompt
+    prompt = context.task.prompt.lower()
 
-    if _SUMMARY.search(prompt):
-        context.task_type = TaskType.SUMMARIZATION
+    scores = {
+        task_type: 0
+        for task_type in PATTERNS
+    }
+
+    for task_type, patterns in PATTERNS.items():
+
+        for pattern in patterns:
+
+            if re.search(pattern, prompt):
+
+                scores[task_type] += 1
+
+    if max(scores.values()) == 0:
+
+        context.task_type = TaskType.FACTUAL
         return
 
-    if _SENTIMENT.search(prompt):
-        context.task_type = TaskType.SENTIMENT
-        return
-
-    if _NER.search(prompt):
-        context.task_type = TaskType.NER
-        return
-
-    if _DEBUG.search(prompt):
-        context.task_type = TaskType.CODE_DEBUGGING
-        return
-
-    if _GENERATE.search(prompt):
-        if context.features.get("contains_code"):
-            context.task_type = TaskType.CODE_GENERATION
-            return
-
-    if _REASONING.search(prompt):
-        context.task_type = TaskType.LOGICAL_REASONING
-        return
-
-    if context.features.get("contains_numbers"):
-        context.task_type = TaskType.MATH
-        return
-
-    context.task_type = TaskType.FACTUAL
+    context.task_type = max(
+        scores,
+        key=scores.get,
+    )
