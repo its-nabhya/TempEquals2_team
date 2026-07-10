@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "c1",
+        "prompt": "Write a Python function that returns the second largest element in a list."
+    },
+    {
+        "task_id": "c2",
+        "prompt": "Implement binary search in Python."
+    },
+    {
+        "task_id": "c3",
+        "prompt": "Write a Java class for a stack."
+    },
+    {
+        "task_id": "c4",
+        "prompt": "Implement merge sort."
+    },
+    {
+        "task_id": "c5",
+        "prompt": "Write a SQL query to find duplicate rows."
+    },
+    {
+        "task_id": "c6",
+        "prompt": "Write a Python function to reverse a linked list."
+    },
+    {
+        "task_id": "c7",
+        "prompt": "Implement Dijkstra's algorithm."
+    },
+    {
+        "task_id": "c8",
+        "prompt": "Write a REST API endpoint in Flask."
+    }
+]

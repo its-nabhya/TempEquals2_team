@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "s1",
+        "prompt": "Classify the sentiment: I absolutely love this phone."
+    },
+    {
+        "task_id": "s2",
+        "prompt": "Classify the sentiment: This laptop is terrible."
+    },
+    {
+        "task_id": "s3",
+        "prompt": "Classify the sentiment: The battery is great but the screen scratches easily."
+    },
+    {
+        "task_id": "s4",
+        "prompt": "Classify the sentiment: The package arrived yesterday."
+    },
+    {
+        "task_id": "s5",
+        "prompt": "Classify the sentiment: Fantastic customer support."
+    },
+    {
+        "task_id": "s6",
+        "prompt": "Classify the sentiment: Worst purchase ever."
+    },
+    {
+        "task_id": "s7",
+        "prompt": "Classify the sentiment: I am satisfied with the performance."
+    },
+    {
+        "task_id": "s8",
+        "prompt": "Classify the sentiment: The weather is cloudy today."
+    }
+]

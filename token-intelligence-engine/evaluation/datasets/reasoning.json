@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "r1",
+        "prompt": "Sam, Jo and Lee each own a different pet. Jo owns the dog. Sam does not own the bird. Who owns the cat?"
+    },
+    {
+        "task_id": "r2",
+        "prompt": "If all roses are flowers and some flowers fade quickly, can all roses fade quickly?"
+    },
+    {
+        "task_id": "r3",
+        "prompt": "Alice is older than Bob. Bob is older than Charlie. Who is youngest?"
+    },
+    {
+        "task_id": "r4",
+        "prompt": "There are three switches and three bulbs..."
+    },
+    {
+        "task_id": "r5",
+        "prompt": "Which number comes next: 2,4,8,16,..."
+    },
+    {
+        "task_id": "r6",
+        "prompt": "Five people stand in a line with given constraints..."
+    },
+    {
+        "task_id": "r7",
+        "prompt": "John always tells the truth. Mike always lies..."
+    },
+    {
+        "task_id": "r8",
+        "prompt": "Two trains leave different stations..."
+    }
+]

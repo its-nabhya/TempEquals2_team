@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "sum1",
+        "prompt": "Summarize in one sentence: Artificial Intelligence enables machines to perform tasks that normally require human intelligence."
+    },
+    {
+        "task_id": "sum2",
+        "prompt": "Summarize: Python is a popular programming language used in web development, AI and automation."
+    },
+    {
+        "task_id": "sum3",
+        "prompt": "Summarize the following paragraph in exactly one sentence: Machine learning allows systems to improve from data without explicit programming."
+    },
+    {
+        "task_id": "sum4",
+        "prompt": "Summarize: Docker packages software into portable containers."
+    },
+    {
+        "task_id": "sum5",
+        "prompt": "Summarize: Git is a distributed version control system."
+    },
+    {
+        "task_id": "sum6",
+        "prompt": "Summarize: PostgreSQL is an open-source relational database."
+    },
+    {
+        "task_id": "sum7",
+        "prompt": "Summarize: Kubernetes orchestrates containers."
+    },
+    {
+        "task_id": "sum8",
+        "prompt": "Summarize: Neural networks are inspired by biological neurons."
+    }
+]

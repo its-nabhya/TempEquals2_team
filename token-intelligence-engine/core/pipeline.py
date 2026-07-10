@@ -14,6 +14,7 @@ from analysis.classifier import classify
 from analysis.features import extract_features
 from analysis.canonicalizer import canonicalize
 from validation.verifier import verify
+from analysis.local_engine import solve
 
 logger = logging.getLogger(__name__)
 class Pipeline:
@@ -44,7 +45,7 @@ class Pipeline:
             classify(context)
             canonicalize(context)
 
-            # solve(context)  # Enable later
+            solve(context)  
 
             if context.solved_locally:
 

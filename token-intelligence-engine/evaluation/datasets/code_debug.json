@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "d1",
+        "prompt": "Debug: def add(a,b): return a-b"
+    },
+    {
+        "task_id": "d2",
+        "prompt": "Fix this Python function that returns the maximum element."
+    },
+    {
+        "task_id": "d3",
+        "prompt": "Debug the following Java code..."
+    },
+    {
+        "task_id": "d4",
+        "prompt": "Find the bug in this C++ program."
+    },
+    {
+        "task_id": "d5",
+        "prompt": "Why does this recursion never terminate?"
+    },
+    {
+        "task_id": "d6",
+        "prompt": "Fix the SQL syntax error."
+    },
+    {
+        "task_id": "d7",
+        "prompt": "Correct this JavaScript function."
+    },
+    {
+        "task_id": "d8",
+        "prompt": "Find and fix the bug in this Python loop."
+    }
+]

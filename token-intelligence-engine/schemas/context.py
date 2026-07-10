@@ -35,4 +35,6 @@ class TaskContext:
 
     confidence: float = 0.0
 
+    local_solver: str | None = None
+
     solved_locally: bool = False

@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "m1",
+        "prompt": "14 + 9"
+    },
+    {
+        "task_id": "m2",
+        "prompt": "125 * 18"
+    },
+    {
+        "task_id": "m3",
+        "prompt": "25% of 320"
+    },
+    {
+        "task_id": "m4",
+        "prompt": "100 / 8"
+    },
+    {
+        "task_id": "m5",
+        "prompt": "A shop has 250 apples. It sells 40. How many remain?"
+    },
+    {
+        "task_id": "m6",
+        "prompt": "Calculate 12 * (4 + 3)"
+    },
+    {
+        "task_id": "m7",
+        "prompt": "18 squared"
+    },
+    {
+        "task_id": "m8",
+        "prompt": "Find the average of 8, 12 and 16."
+    }
+]

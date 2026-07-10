@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "n1",
+        "prompt": "Extract named entities: Maria Sanchez joined Fireworks AI in Berlin last March."
+    },
+    {
+        "task_id": "n2",
+        "prompt": "Extract entities: Sundar Pichai spoke at Google."
+    },
+    {
+        "task_id": "n3",
+        "prompt": "Extract entities: Apple released a new product in London."
+    },
+    {
+        "task_id": "n4",
+        "prompt": "Extract entities: Elon Musk visited Tokyo."
+    },
+    {
+        "task_id": "n5",
+        "prompt": "Extract entities: Satya Nadella works at Microsoft."
+    },
+    {
+        "task_id": "n6",
+        "prompt": "Extract entities: Jeff Bezos founded Amazon."
+    },
+    {
+        "task_id": "n7",
+        "prompt": "Extract entities: Tim Cook spoke in Paris."
+    },
+    {
+        "task_id": "n8",
+        "prompt": "Extract entities: Sam Altman leads OpenAI."
+    }
+]

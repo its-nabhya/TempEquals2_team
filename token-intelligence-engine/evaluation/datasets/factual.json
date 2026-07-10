@@ -1,0 +1,34 @@
+[
+    {
+        "task_id": "f1",
+        "prompt": "What is the capital of Australia?"
+    },
+    {
+        "task_id": "f2",
+        "prompt": "Who wrote Pride and Prejudice?"
+    },
+    {
+        "task_id": "f3",
+        "prompt": "Explain how photosynthesis works."
+    },
+    {
+        "task_id": "f4",
+        "prompt": "What is HTTP?"
+    },
+    {
+        "task_id": "f5",
+        "prompt": "What is the largest planet in the Solar System?"
+    },
+    {
+        "task_id": "f6",
+        "prompt": "Why is the sky blue?"
+    },
+    {
+        "task_id": "f7",
+        "prompt": "Define polymorphism in object-oriented programming."
+    },
+    {
+        "task_id": "f8",
+        "prompt": "What is a blockchain?"
+    }
+]
