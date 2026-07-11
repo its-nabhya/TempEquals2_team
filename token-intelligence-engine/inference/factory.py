@@ -9,7 +9,7 @@ from inference.fireworks import FireworksProvider
 from inference.mock import MockProvider
 from inference.provider import InferenceProvider
 from inference.client import FireworksClient
-
+from local.provider import LocalProvider
 
 class ProviderFactory:
 
@@ -20,6 +20,9 @@ class ProviderFactory:
 
         if config.provider is ProviderType.MOCK:
             return MockProvider()
+        if config.provider is ProviderType.LOCAL:
+
+            return LocalProvider()
 
         if config.provider is ProviderType.FIREWORKS:
             # return FireworksProvider(config)

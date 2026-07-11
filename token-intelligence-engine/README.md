@@ -118,3 +118,28 @@ Use locally available Serverless models for development. During evaluation, alwa
 ✅ End-to-end Fireworks inference validated.
 
 The application has successfully executed the complete processing pipeline using the Fireworks OpenAI-compatible API and produced a valid `results.json` output.
+
+### Prompt Optimization
+
+Before every Fireworks API call, prompts pass through a lightweight optimization layer that:
+
+- Normalizes whitespace
+- Removes redundant polite phrases
+- Applies task-specific response constraints
+- Reduces estimated token usage
+
+This optimization is deterministic and incurs no additional inference cost.
+
+### Decision Logging
+
+Every processed task produces a structured JSONL record in `output/decisions.jsonl` containing:
+
+- Task type
+- Routing decision
+- Local solver used
+- Confidence
+- Selected Fireworks model
+- Prompt length
+- Response length
+
+This log is used to benchmark routing quality and guide token optimization experiments.

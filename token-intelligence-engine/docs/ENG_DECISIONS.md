@@ -710,3 +710,50 @@ Introduce a dedicated evaluation package that observes pipeline execution withou
 Reason
 
 Benchmarking and experimentation require additional metrics that are not part of the hackathon submission format. Separating evaluation concerns keeps the production path minimal while enabling rapid experimentation.
+
+## ED-007: Introduce Prompt Optimization Layer
+
+Decision:
+Introduce a dedicated optimization layer before every Fireworks request.
+
+Reason:
+Research (LLMLingua-2 and concise reasoning) suggests that reducing prompt verbosity and constraining output format lowers token consumption without requiring model retraining.
+
+Tradeoff:
+The optimizer remains deterministic and conservative to avoid degrading accuracy before the 80% accuracy gate.
+
+## ED-008: Keep Fireworks Client Transport-Only
+
+Decision:
+Prompt optimization and routing logic are implemented outside the Fireworks client.
+
+Reason:
+The client should remain a thin wrapper around the OpenAI-compatible API. This keeps inference transport independent from optimization strategy and allows future providers (e.g., Local LLM) to share the same preprocessing pipeline.
+
+Tradeoff:
+An additional preprocessing step exists in the pipeline, but provider implementations remain simple and interchangeable.
+
+## ED-009: Avoid Standard Library Module Shadowing
+
+Decision:
+Project packages must not reuse Python standard library module names.
+
+Reason:
+Using names such as `logging`, `json`, or `typing` causes Python to import project packages instead of the standard library, leading to runtime failures and difficult-to-debug behavior.
+
+Chosen Solution:
+Rename the internal logging package to `telemetry`.
+
+Tradeoff:
+Minor import updates, but eliminates namespace collisions and keeps the project compatible with third-party libraries.
+
+## ED-011: Prioritize Model Selection Before Integration
+
+Decision:
+Benchmark multiple lightweight GGUF models before integrating local inference.
+
+Reason:
+The evaluation environment is constrained (4 GB RAM, 2 vCPU, <10 GB image). Selecting the best model based on measured performance reduces integration risk and avoids rework.
+
+Tradeoff:
+Slight upfront benchmarking effort, but faster overall iteration and a higher-confidence integration.

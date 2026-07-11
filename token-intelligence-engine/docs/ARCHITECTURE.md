@@ -372,3 +372,56 @@ This phase intentionally performs no network calls.
 The evaluation framework is intentionally isolated from the production pipeline.
 
 It reuses the production components and observes execution through a callback mechanism, ensuring benchmarking code cannot affect the submission output or runtime behavior.
+
+### v0.3 – Prompt Optimization Layer (POL)
+
+A dedicated optimization layer is introduced immediately before remote inference.
+
+Pipeline:
+
+Task
+→ Feature Extraction
+→ Classification
+→ Canonicalization
+→ Prompt Optimization
+→ Local Solver
+→ Fireworks
+
+The Prompt Optimization Layer performs lightweight, deterministic prompt normalization and task-aware response constraint injection to reduce Fireworks token usage without affecting semantic intent.
+
+### v0.4 – Prompt Optimization & Decision Logging
+
+The inference pipeline now includes a Prompt Optimization Layer (POL) before remote inference and a Decision Logging subsystem after inference.
+
+Pipeline:
+
+Task
+→ Feature Extraction
+→ Classification
+→ Canonicalization
+→ Prompt Optimization
+→ Local Solver
+→ Fireworks
+→ Verification
+→ Decision Logger
+→ Output
+
+The Fireworks client remains transport-only and is intentionally isolated from routing or optimization logic.
+
+Replace
+
+Decision Logger
+
+with
+
+Telemetry
+    ├── Decision Logger
+    ├── Metrics
+    ├── Token Statistics
+    └── Benchmark Data
+
+This gives us a cleaner long-term place for all runtime instrumentation.
+
+### v0.6 – Planned Local Inference Layer
+
+The architecture introduces a pluggable LocalLLMProvider. Model selection is performed through benchmarking lightweight GGUF models before committing to a production integration. This keeps the provider abstraction stable while allowing the underlying local model to evolve.

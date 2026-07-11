@@ -8,7 +8,6 @@ than raw string literals throughout the codebase.
 
 from enum import StrEnum
 
-
 class ProviderType(StrEnum):
     """
     Supported inference providers.
@@ -24,28 +23,4 @@ class ProviderType(StrEnum):
 
     MOCK = "mock"
     FIREWORKS = "fireworks"
-
-
-
-
-"""
-Notice we used
-
-StrEnum
-
-instead of
-
-Enum
-
-because
-
-ProviderType.MOCK
-
-behaves like a string whenever needed while still giving us
-
-autocomplete
-type safety
-IDE support
-
-This file should almost never change.
-"""
+    LOCAL = "local"

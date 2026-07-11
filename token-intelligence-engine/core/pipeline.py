@@ -16,6 +16,11 @@ from analysis.canonicalizer import canonicalize
 from validation.verifier import verify
 from analysis.local_engine import solve
 
+from optimization.prompt_optimizer import optimize_prompt
+from telemetry.decision_logger import log_decision
+
+
+
 logger = logging.getLogger(__name__)
 class Pipeline:
 
@@ -44,6 +49,10 @@ class Pipeline:
             extract_features(context)
             classify(context)
             canonicalize(context)
+            context.canonical_prompt = optimize_prompt(
+                context.canonical_prompt,
+                context.task_type,
+            )
 
             solve(context)  
 
@@ -56,7 +65,7 @@ class Pipeline:
 
                 if observer is not None:
                     observer(context, result)
-
+                log_decision(context)
                 results.append(result)
                 continue
 
@@ -83,6 +92,7 @@ class Pipeline:
             )
 
             context.answer = answer
+            log_decision(context)
 
             if not verify(context):
                 raise RuntimeError(

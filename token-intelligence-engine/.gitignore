@@ -37,3 +37,5 @@ output/*
 
 # Local sample data (optional)
 input/tasks.json
+
+models/*.gguf
