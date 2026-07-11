@@ -40,13 +40,11 @@ class LocalClient:
         temperature: float = 0.0,
     ) -> str:
 
-        output = self.model(
-            prompt,
+        output = self.model.create_completion(
+            prompt=prompt,
             max_tokens=256,
             temperature=temperature,
-            echo=False,
         )
-
         return output["choices"][0]["text"].strip()
 
 # """

@@ -22,15 +22,15 @@ class ProviderFactory:
         print("=" * 60)
 
         if config.provider is ProviderType.MOCK:
-            print("CREATING MOCK PROVIDER")
+            # print("CREATING MOCK PROVIDER")
             return MockProvider()
         if config.provider is ProviderType.LOCAL:
-            print("CREATING LOCAL PROVIDER")
+            # print("CREATING LOCAL PROVIDER")
 
             return LocalProvider()
 
         if config.provider is ProviderType.FIREWORKS:
-            print("CREATING FIREWORKS PROVIDER")
+            # print("CREATING FIREWORKS PROVIDER")
             # return FireworksProvider(config)
             client = FireworksClient(
                 api_key=config.fireworks_api_key or "",

@@ -27,7 +27,10 @@ def validate_startup(config: Config) -> None:
         exist_ok=True,
     )
 
-    if not config.allowed_models:
+    if (
+        config.provider is ProviderType.FIREWORKS
+        and not config.allowed_models
+    ):
         raise RuntimeError(
             "No allowed models configured."
         )

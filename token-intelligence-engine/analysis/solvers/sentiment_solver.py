@@ -1,46 +1,26 @@
-"""
-Rule-based sentiment solver.
-"""
-
 from __future__ import annotations
 
 POSITIVE = {
-    "excellent",
-    "great",
-    "good",
-    "love",
-    "amazing",
-    "awesome",
-    "perfect",
-    "fantastic",
-    "happy",
-    "satisfied",
-    "wonderful",
-    "nice",
-    "liked",
-    "best",
+    "excellent","great","good","love","amazing","awesome",
+    "perfect","fantastic","happy","satisfied","wonderful",
+    "best","recommend","beautiful","nice","liked","works well"
 }
 
 NEGATIVE = {
-    "bad",
-    "terrible",
-    "poor",
-    "awful",
-    "hate",
-    "worst",
-    "broken",
-    "disappointed",
-    "slow",
-    "scratches",
-    "issue",
-    "problem",
-    "failed",
-    "fail",
-    "broke",
-    "sad",
-    "upset",
-    "broken",
-    "unacceptable",
+    "bad","terrible","poor","awful","hate","worst",
+    "broken","disappointed","slow","scratches",
+    "horrible","unacceptable","annoying",
+    "flat tire","useless","failed","issue"
+}
+
+NEUTRAL = {
+    "today",
+    "yesterday",
+    "blue",
+    "located",
+    "contains",
+    "weighs",
+    "arrived",
 }
 
 
@@ -50,25 +30,20 @@ def solve_sentiment(
 
     text = prompt.lower()
 
-    positive = sum(
-        word in text
-        for word in POSITIVE
-    )
+    positive = sum(word in text for word in POSITIVE)
+    negative = sum(word in text for word in NEGATIVE)
+    neutral = sum(word in text for word in NEUTRAL)
 
-    negative = sum(
-        word in text
-        for word in NEGATIVE
-    )
     if positive > 0 and negative > 0:
-        return "mixed", 0.98
-
-    if positive == 0 and negative == 0:
-        return "neutral", 0.98
-    
-    if positive == negative:
-        return None, 0.0
+        return "Mixed", 0.92
 
     if positive > negative:
-        return "positive", 0.95
+        return "Positive", 0.98
 
-    return "negative", 0.95
+    if negative > positive:
+        return "Negative", 0.98
+
+    if neutral > 0:
+        return "Neutral", 0.95
+
+    return None, 0.0

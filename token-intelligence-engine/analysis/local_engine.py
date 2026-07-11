@@ -14,7 +14,7 @@ def solve(
 ) -> None:
 
     if context.task_type is TaskType.MATH:
-        print("Trying symbolic:", context.task_type)
+        # print("Trying symbolic:", context.task_type)
 
         answer, confidence = solve_math(
             context.task.prompt
@@ -26,21 +26,21 @@ def solve(
             context.confidence = confidence
             context.local_solver = "math"
             context.solved_locally = True
-        print("Solved symbolically")
+        # print("Solved symbolically")
         return
 
-    # if context.task_type is TaskType.SENTIMENT:
+    if context.task_type is TaskType.SENTIMENT:
 
-    #     answer, confidence = solve_sentiment(
-    #         context.task.prompt
-    #     )
+        answer, confidence = solve_sentiment(
+            context.task.prompt
+        )
 
-    #     if confidence >= 0.95:
+        if confidence >= 0.90:
 
-    #         context.local_answer = answer
-    #         context.confidence = confidence
-    #         context.local_solver = "sentiment"
-    #         context.solved_locally = True
+            context.local_answer = answer
+            context.confidence = confidence
+            context.local_solver = "sentiment"
+            context.solved_locally = True
     
     # if context.task_type is TaskType.NER:
 

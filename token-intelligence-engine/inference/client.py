@@ -36,10 +36,22 @@ class FireworksClient:
                 model=model,
                 messages=[
                     {
+                        "role": "system",
+                        "content":
+                        (
+                            "You are a concise assistant. "
+                            "Follow the user's formatting instructions exactly. "
+                            "Do not add explanations unless explicitly requested."
+                        ),
+                    },
+                    {
                         "role": "user",
                         "content": prompt,
-                    }
+                    },
                 ],
+                temperature=0,
+                top_p=1,
+                max_tokens=128,
             )
 
             if not response.choices:

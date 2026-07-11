@@ -1,33 +1,67 @@
+# ----------------------------
 # Python
+# ----------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
 
-# Virtual Environment
+# ----------------------------
+# Virtual Environments
+# ----------------------------
 .venv/
 venv/
 
-# Tests & Docs
-tests/
-docs/
-
-# OS
-.DS_Store
-Thumbs.db
-
-
-.venv/
-.git/
-.gitignore
+# ----------------------------
+# IDE
+# ----------------------------
 .vscode/
 .idea/
 
-evaluation/
-benchmarks/
+# ----------------------------
+# Git
+# ----------------------------
+.git/
+.gitignore
+
+# ----------------------------
+# Environment
+# ----------------------------
+.env
+
+# ----------------------------
+# Build / Logs
+# ----------------------------
 logs/
 output/
-op.txt
 *.log
+op.txt
 
-.env
+# ----------------------------
+# Development Only
+# ----------------------------
+evaluation/
+benchmarks/
+datasets/
+tests/
+docs/
+
+project_dump.txt
+dump_proj.py
+test_ctransformers.py
+
+# ----------------------------
+# Unused Models
+# ----------------------------
+models/qwen.gguf
+
+# ----------------------------
+# Input (mounted at runtime)
+# ----------------------------
+input/
+
+# ----------------------------
+# OS Files
+# ----------------------------
+.DS_Store
+Thumbs.db

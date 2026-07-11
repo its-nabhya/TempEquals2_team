@@ -9,6 +9,7 @@ from config import Config
 from routing.registry import ModelRegistry
 from schemas.context import TaskContext
 from constants.task_type import TaskType
+from analysis.difficulty import estimate
 
 class Router:
 
@@ -60,3 +61,28 @@ class Router:
                 return models[0].model_id
         
         return self.registry.first()
+    def use_local(
+        self,
+        context: TaskContext,
+    ) -> bool:
+
+        difficulty = estimate(context)
+
+        # Symbolic solver already handled math.
+
+        if context.task_type in {
+            TaskType.FACTUAL,
+            TaskType.SUMMARIZATION,
+            TaskType.SENTIMENT,
+            TaskType.NER,
+        }:
+            return True
+
+        if context.task_type in {
+            TaskType.LOGICAL_REASONING,
+            TaskType.CODE_GENERATION,
+            TaskType.CODE_DEBUGGING,
+        }:
+            return False
+
+        return difficulty.value <= 2

@@ -1,27 +1,8 @@
 """
 Prompt optimization.
-
-Applies lightweight prompt compression and task-aware
-response constraints before remote inference.
 """
 
-from __future__ import annotations
-
-import re
-
 from constants.task_type import TaskType
-from optimization.response_style import style_for
-
-
-_WHITESPACE = re.compile(r"\s+")
-
-_FILLER = (
-    "please",
-    "can you",
-    "could you",
-    "would you",
-    "kindly",
-)
 
 
 def optimize_prompt(
@@ -29,26 +10,83 @@ def optimize_prompt(
     task_type: TaskType,
 ) -> str:
 
-    prompt = _WHITESPACE.sub(
-        " ",
-        prompt.strip(),
-    )
+    if task_type is TaskType.FACTUAL:
 
-    lower = prompt.lower()
+        return (
+            "Answer the question accurately.\n"
+            "Return ONLY the answer.\n"
+            "Do not explain.\n\n"
+            f"{prompt}"
+        )
 
-    for phrase in _FILLER:
+    if task_type is TaskType.MATH:
 
-        if lower.startswith(phrase):
+        return (
+            "Solve carefully.\n"
+            "Return ONLY the final answer.\n"
+            "No explanation.\n\n"
+            f"{prompt}"
+        )
 
-            prompt = prompt[
-                len(phrase):
-            ].lstrip(" ,")
+    if task_type is TaskType.SENTIMENT:
 
-            break
+        return (
+            "Classify the sentiment.\n"
+            "Return EXACTLY one of:\n"
+            "Positive\n"
+            "Negative\n"
+            "Neutral\n"
+            "Mixed\n\n"
+            f"{prompt}"
+        )
 
-    style = style_for(task_type)
+    if task_type is TaskType.NER:
 
-    return (
-        f"{style}\n\n"
-        f"{prompt}"
-    )
+        return (
+            "Extract all entities.\n"
+            "Return ONLY valid JSON.\n\n"
+            "{\n"
+            '  "person": [],\n'
+            '  "organization": [],\n'
+            '  "location": [],\n'
+            '  "date": []\n'
+            "}\n\n"
+            f"{prompt}"
+        )
+
+    if task_type is TaskType.SUMMARIZATION:
+
+        return (
+            "Summarize in ONE sentence.\n"
+            "Do not explain.\n\n"
+            f"{prompt}"
+        )
+
+    if task_type is TaskType.CODE_GENERATION:
+
+        return (
+            "Return ONLY code.\n"
+            "No markdown.\n"
+            "No explanation.\n\n"
+            f"{prompt}"
+        )
+
+    if task_type is TaskType.CODE_DEBUGGING:
+
+        return (
+            "Find the bug.\n"
+            "Return ONLY the corrected code.\n"
+            "No explanation.\n\n"
+            f"{prompt}"
+        )
+
+    if task_type is TaskType.LOGICAL_REASONING:
+
+        return (
+            "Reason carefully.\n"
+            "Return ONLY the final answer.\n"
+            "Keep it concise.\n\n"
+            f"{prompt}"
+        )
+
+    return prompt

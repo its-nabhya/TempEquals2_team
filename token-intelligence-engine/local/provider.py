@@ -17,7 +17,6 @@ class LocalProvider(InferenceProvider):
     def generate(
         self,
         prompt: str,
-        model: str | None = None,
     ) -> str:
 
         return self.client.generate(
