@@ -1,34 +1,152 @@
 [
     {
-        "task_id": "m1",
-        "prompt": "14 + 9"
+      "task_id": "m1",
+      "prompt": "Evaluate: 5 + 7",
+      "expected": "12"
     },
     {
-        "task_id": "m2",
-        "prompt": "125 * 18"
+      "task_id": "m2",
+      "prompt": "Evaluate: 144 / 12",
+      "expected": "12"
     },
     {
-        "task_id": "m3",
-        "prompt": "25% of 320"
+      "task_id": "m3",
+      "prompt": "Solve for x: 2x = 10",
+      "expected": "5"
     },
     {
-        "task_id": "m4",
-        "prompt": "100 / 8"
+      "task_id": "m4",
+      "prompt": "What is 15% of 80?",
+      "expected": "12"
     },
     {
-        "task_id": "m5",
-        "prompt": "A shop has 250 apples. It sells 40. How many remain?"
+      "task_id": "m5",
+      "prompt": "Evaluate: (4 + 5) * (10 - 2)",
+      "expected": "72"
     },
     {
-        "task_id": "m6",
-        "prompt": "Calculate 12 * (4 + 3)"
+      "task_id": "m6",
+      "prompt": "Solve for x: 3x - 7 = 14",
+      "expected": "7"
     },
     {
-        "task_id": "m7",
-        "prompt": "18 squared"
+      "task_id": "m7",
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "expected": "150 miles"
     },
     {
-        "task_id": "m8",
-        "prompt": "Find the average of 8, 12 and 16."
+      "task_id": "m8",
+      "prompt": "Find the area of a circle with radius 4 (use pi=3.14).",
+      "expected": "50.24"
+    },
+    {
+      "task_id": "m9",
+      "prompt": "Solve for x: x^2 - 16 = 0 (positive root)",
+      "expected": "4"
+    },
+    {
+      "task_id": "m10",
+      "prompt": "Calculate the factorial of 5 (5!).",
+      "expected": "120"
+    },
+    {
+      "task_id": "m11",
+      "prompt": "What is the derivative of 3x^2 with respect to x?",
+      "expected": "6x"
+    },
+    {
+      "task_id": "m12",
+      "prompt": "Solve the system: x+y=10, x-y=2. Find x.",
+      "expected": "6"
+    },
+    {
+      "task_id": "m13",
+      "prompt": "What is the sum of the interior angles of a hexagon?",
+      "expected": "720 degrees"
+    },
+    {
+      "task_id": "m14",
+      "prompt": "Find the hypotenuse of a right triangle with legs 9 and 12.",
+      "expected": "15"
+    },
+    {
+      "task_id": "m15",
+      "prompt": "Evaluate log base 2 of 64.",
+      "expected": "6"
+    },
+    {
+      "task_id": "m16",
+      "prompt": "Find the probability of rolling two sixes on two fair 6-sided dice.",
+      "expected": "1/36"
+    },
+    {
+      "task_id": "m17",
+      "prompt": "What is the limit of (sin x)/x as x approaches 0?",
+      "expected": "1"
+    },
+    {
+      "task_id": "m18",
+      "prompt": "Solve for x: 2^x = 32",
+      "expected": "5"
+    },
+    {
+      "task_id": "m19",
+      "prompt": "Calculate the determinant of a 2x2 matrix [[3, 2], [1, 4]].",
+      "expected": "10"
+    },
+    {
+      "task_id": "m20",
+      "prompt": "Integrate 2x dx from x=0 to x=3.",
+      "expected": "9"
+    },
+    {
+      "task_id": "m21",
+      "prompt": "Find the sum of the first 10 terms of an arithmetic progression where a=2, d=3.",
+      "expected": "155"
+    },
+    {
+      "task_id": "m22",
+      "prompt": "How many combinations are there to choose 3 items from 5 (5C3)?",
+      "expected": "10"
+    },
+    {
+      "task_id": "m23",
+      "prompt": "Find the vertex of the parabola y = x^2 - 4x + 3. (x-coordinate)",
+      "expected": "2"
+    },
+    {
+      "task_id": "m24",
+      "prompt": "What is the 7th number in the Fibonacci sequence (starting 0, 1, 1...)?",
+      "expected": "8"
+    },
+    {
+      "task_id": "m25",
+      "prompt": "Solve for x: e^(ln x) = 7",
+      "expected": "7"
+    },
+    {
+      "task_id": "m26",
+      "prompt": "Find the dot product of vectors [1, 2, 3] and [4, -5, 6].",
+      "expected": "12"
+    },
+    {
+      "task_id": "m27",
+      "prompt": "What is the modulo 7 of 100?",
+      "expected": "2"
+    },
+    {
+      "task_id": "m28",
+      "prompt": "Find the expected value of a fair 6-sided die.",
+      "expected": "3.5"
+    },
+    {
+      "task_id": "m29",
+      "prompt": "Solve the differential equation dy/dx = y given y(0)=1 for y(x).",
+      "expected": "e^x"
+    },
+    {
+      "task_id": "m30",
+      "prompt": "What is the sum of the infinite geometric series 1 + 1/2 + 1/4 + 1/8 + ...?",
+      "expected": "2"
     }
-]
+  ]

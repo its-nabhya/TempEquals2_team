@@ -15,6 +15,10 @@ POSITIVE = {
     "fantastic",
     "happy",
     "satisfied",
+    "wonderful",
+    "nice",
+    "liked",
+    "best",
 }
 
 NEGATIVE = {
@@ -28,6 +32,15 @@ NEGATIVE = {
     "disappointed",
     "slow",
     "scratches",
+    "issue",
+    "problem",
+    "failed",
+    "fail",
+    "broke",
+    "sad",
+    "upset",
+    "broken",
+    "unacceptable",
 }
 
 
@@ -46,7 +59,12 @@ def solve_sentiment(
         word in text
         for word in NEGATIVE
     )
+    if positive > 0 and negative > 0:
+        return "mixed", 0.98
 
+    if positive == 0 and negative == 0:
+        return "neutral", 0.98
+    
     if positive == negative:
         return None, 0.0
 

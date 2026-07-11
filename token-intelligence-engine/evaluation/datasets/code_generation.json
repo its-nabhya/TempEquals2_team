@@ -1,34 +1,77 @@
 [
     {
-        "task_id": "c1",
-        "prompt": "Write a Python function that returns the second largest element in a list."
+      "task_id": "c1",
+      "prompt": "Write a Python function to add two numbers.",
+      "expected_contains": ["def", "+", "return"]
     },
     {
-        "task_id": "c2",
-        "prompt": "Implement binary search in Python."
+      "task_id": "c2",
+      "prompt": "Write a JS arrow function to square a number.",
+      "expected_contains": ["=>", "*"]
     },
     {
-        "task_id": "c3",
-        "prompt": "Write a Java class for a stack."
+      "task_id": "c3",
+      "prompt": "Write a Python function to check if a string is a palindrome.",
+      "expected_contains": ["def", "[::-1]", "return"]
     },
     {
-        "task_id": "c4",
-        "prompt": "Implement merge sort."
+      "task_id": "c4",
+      "prompt": "Write a bash script to print 'Hello World'.",
+      "expected_contains": ["echo", "Hello World"]
     },
     {
-        "task_id": "c5",
-        "prompt": "Write a SQL query to find duplicate rows."
+      "task_id": "c5",
+      "prompt": "Write a SQL query to select all users older than 18.",
+      "expected_contains": ["SELECT", "FROM users", "WHERE age > 18"]
     },
     {
-        "task_id": "c6",
-        "prompt": "Write a Python function to reverse a linked list."
+      "task_id": "c6",
+      "prompt": "Write a Python script to read a JSON file and parse it.",
+      "expected_contains": ["import json", "open(", "json.load("]
     },
     {
-        "task_id": "c7",
-        "prompt": "Implement Dijkstra's algorithm."
+      "task_id": "c7",
+      "prompt": "Write a Java method to calculate factorial using recursion.",
+      "expected_contains": ["int", "return 1", "* factorial("]
     },
     {
-        "task_id": "c8",
-        "prompt": "Write a REST API endpoint in Flask."
+      "task_id": "c8",
+      "prompt": "Write a React functional component that renders a button.",
+      "expected_contains": ["function", "return", "<button>"]
+    },
+    {
+      "task_id": "c9",
+      "prompt": "Write a Python class representing a Circle with an area method.",
+      "expected_contains": ["class Circle", "def __init__", "def area", "math.pi"]
+    },
+    {
+      "task_id": "c10",
+      "prompt": "Write a regex pattern in JS to match an email address.",
+      "expected_contains": ["/", "@", "\\.", "/"]
+    },
+    {
+      "task_id": "c11",
+      "prompt": "Implement binary search in Python.",
+      "expected_contains": ["def", "low", "high", "mid", "while"]
+    },
+    {
+      "task_id": "c12",
+      "prompt": "Write a Dockerfile to run a Node.js app.",
+      "expected_contains": ["FROM node", "WORKDIR", "COPY", "RUN npm install", "CMD"]
+    },
+    {
+      "task_id": "c13",
+      "prompt": "Write a Rust function to reverse a string.",
+      "expected_contains": ["fn", "chars()", "rev()", "collect()"]
+    },
+    {
+      "task_id": "c14",
+      "prompt": "Write a generic function in TypeScript to return the first element of an array.",
+      "expected_contains": ["function", "<T>", "arr: T[]", "return arr[0]"]
+    },
+    {
+      "task_id": "c15",
+      "prompt": "Implement a Singleton pattern in Python.",
+      "expected_contains": ["class", "_instance", "__new__", "cls"]
     }
-]
+  ]

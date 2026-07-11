@@ -12,7 +12,7 @@ PERSON = re.compile(
 )
 
 ORG = re.compile(
-    r"\b(OpenAI|Fireworks AI|Google|Microsoft|Apple|Meta|Amazon)\b"
+    r"\b([A-Z][A-Za-z&]*(?:\s+[A-Z][A-Za-z&]*)*)\b"
 )
 
 LOCATION = re.compile(
@@ -20,7 +20,13 @@ LOCATION = re.compile(
 )
 
 DATE = re.compile(
-    r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b"
+    r"\b(?:Q[1-4]|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|January|February|March|April|May|June|July|August|September|October|November|December|\d{4}|yesterday|today)\b",
+    re.I,
+)
+
+MONEY = re.compile(
+    r"[$₹€£]\s?\d+(?:\.\d+)?(?:\s*(?:million|billion))?",
+    re.I,
 )
 
 
@@ -34,6 +40,10 @@ def solve_ner(
     orgs = ORG.findall(prompt)
     locations = LOCATION.findall(prompt)
     dates = DATE.findall(prompt)
+    money = MONEY.findall(prompt)
+
+    if money:
+        entities["money"] = money
 
     if persons:
         entities["person"] = persons

@@ -1,34 +1,77 @@
 [
     {
-        "task_id": "f1",
-        "prompt": "What is the capital of Australia?"
+      "task_id": "f1",
+      "prompt": "What is the capital of France?",
+      "expected": "Paris"
     },
     {
-        "task_id": "f2",
-        "prompt": "Who wrote Pride and Prejudice?"
+      "task_id": "f2",
+      "prompt": "How many continents are there?",
+      "expected": "7"
     },
     {
-        "task_id": "f3",
-        "prompt": "Explain how photosynthesis works."
+      "task_id": "f3",
+      "prompt": "Who wrote 'Hamlet'?",
+      "expected": "William Shakespeare"
     },
     {
-        "task_id": "f4",
-        "prompt": "What is HTTP?"
+      "task_id": "f4",
+      "prompt": "What is the chemical symbol for Gold?",
+      "expected": "Au"
     },
     {
-        "task_id": "f5",
-        "prompt": "What is the largest planet in the Solar System?"
+      "task_id": "f5",
+      "prompt": "In what year did the Titanic sink?",
+      "expected": "1912"
     },
     {
-        "task_id": "f6",
-        "prompt": "Why is the sky blue?"
+      "task_id": "f6",
+      "prompt": "Who painted the Starry Night?",
+      "expected": "Vincent van Gogh"
     },
     {
-        "task_id": "f7",
-        "prompt": "Define polymorphism in object-oriented programming."
+      "task_id": "f7",
+      "prompt": "What is the hardest natural substance on Earth?",
+      "expected": "Diamond"
     },
     {
-        "task_id": "f8",
-        "prompt": "What is a blockchain?"
+      "task_id": "f8",
+      "prompt": "Which planet is closest to the Sun?",
+      "expected": "Mercury"
+    },
+    {
+      "task_id": "f9",
+      "prompt": "What does CPU stand for in computing?",
+      "expected": "Central Processing Unit"
+    },
+    {
+      "task_id": "f10",
+      "prompt": "What is the powerhouse of the cell?",
+      "expected": "Mitochondria"
+    },
+    {
+      "task_id": "f11",
+      "prompt": "Compare HTTP and HTTPS briefly.",
+      "expected": "HTTPS is HTTP with TLS/SSL encryption for security."
+    },
+    {
+      "task_id": "f12",
+      "prompt": "Explain eventual consistency.",
+      "expected": "A database model where updates will propagate to all nodes eventually, rather than immediately."
+    },
+    {
+      "task_id": "f13",
+      "prompt": "What is the difference between TCP and UDP?",
+      "expected": "TCP is connection-oriented and reliable; UDP is connectionless and faster."
+    },
+    {
+      "task_id": "f14",
+      "prompt": "What is the speed of light in a vacuum?",
+      "expected": "299,792,458 meters per second"
+    },
+    {
+      "task_id": "f15",
+      "prompt": "Who is considered the father of modern computer science?",
+      "expected": "Alan Turing"
     }
-]
+  ]

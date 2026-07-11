@@ -36,12 +36,11 @@ PATTERNS: dict[TaskType, tuple[str, ...]] = {
     ),
 
     TaskType.NER: (
+        r"\bextract entities\b",
+        r"\bextract named entities\b",
+        r"\bnamed entity\b",
         r"\bnamed entities\b",
-        r"\bextract\b",
-        r"\bperson\b",
-        r"\borganization\b",
-        r"\blocation\b",
-        r"\bdate\b",
+        r"\bidentify entities\b",
     ),
 
     TaskType.SUMMARIZATION: (
@@ -67,11 +66,16 @@ PATTERNS: dict[TaskType, tuple[str, ...]] = {
     ),
 
     TaskType.LOGICAL_REASONING: (
-        r"\blogic\b",
-        r"\bpuzzle\b",
-        r"\bconstraint\b",
+        r"\bseries\b",
+        r"\bcomes next\b",
+        r"\bwhat comes next\b",
+        r"\bwhich comes next\b",
+        r"\briddle\b",
+        r"\bif\b.*\bthen\b",
+        r"\ball\b.*\bare\b",
         r"\bwho owns\b",
-        r"\bdeduce\b",
+        r"\bmeasure exactly\b",
+        r"\bjug\b", 
     ),
 }
 

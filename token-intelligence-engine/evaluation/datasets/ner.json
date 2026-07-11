@@ -1,34 +1,152 @@
 [
     {
-        "task_id": "n1",
-        "prompt": "Extract named entities: Maria Sanchez joined Fireworks AI in Berlin last March."
+      "task_id": "n1",
+      "prompt": "Extract entities: John Smith visited Paris.",
+      "expected": "John Smith (PERSON), Paris (LOCATION)"
     },
     {
-        "task_id": "n2",
-        "prompt": "Extract entities: Sundar Pichai spoke at Google."
+      "task_id": "n2",
+      "prompt": "Extract entities: Google is located in California.",
+      "expected": "Google (ORGANIZATION), California (LOCATION)"
     },
     {
-        "task_id": "n3",
-        "prompt": "Extract entities: Apple released a new product in London."
+      "task_id": "n3",
+      "prompt": "Extract entities: Tim Cook announced a new iPhone.",
+      "expected": "Tim Cook (PERSON), iPhone (PRODUCT)"
     },
     {
-        "task_id": "n4",
-        "prompt": "Extract entities: Elon Musk visited Tokyo."
+      "task_id": "n4",
+      "prompt": "Extract entities: We flew on Delta Airlines to JFK Airport.",
+      "expected": "Delta Airlines (ORGANIZATION), JFK Airport (FACILITY/LOCATION)"
     },
     {
-        "task_id": "n5",
-        "prompt": "Extract entities: Satya Nadella works at Microsoft."
+      "task_id": "n5",
+      "prompt": "Extract entities: World War II ended in 1945.",
+      "expected": "World War II (EVENT), 1945 (DATE)"
     },
     {
-        "task_id": "n6",
-        "prompt": "Extract entities: Jeff Bezos founded Amazon."
+      "task_id": "n6",
+      "prompt": "Extract entities: The Mona Lisa was painted by Leonardo da Vinci.",
+      "expected": "Mona Lisa (WORK_OF_ART), Leonardo da Vinci (PERSON)"
     },
     {
-        "task_id": "n7",
-        "prompt": "Extract entities: Tim Cook spoke in Paris."
+      "task_id": "n7",
+      "prompt": "Extract entities: Mount Everest is in the Himalayas.",
+      "expected": "Mount Everest (LOCATION), Himalayas (LOCATION)"
     },
     {
-        "task_id": "n8",
-        "prompt": "Extract entities: Sam Altman leads OpenAI."
+      "task_id": "n8",
+      "prompt": "Extract entities: Tesla's Q3 revenue exceeded $5 billion.",
+      "expected": "Tesla (ORGANIZATION), Q3 (DATE), $5 billion (MONEY)"
+    },
+    {
+      "task_id": "n9",
+      "prompt": "Extract entities: Dr. Anthony Fauci testified before the Senate Committee on Health.",
+      "expected": "Dr. Anthony Fauci (PERSON), Senate Committee on Health (ORGANIZATION)"
+    },
+    {
+      "task_id": "n10",
+      "prompt": "Extract entities: I bought 500 shares of MSFT yesterday morning.",
+      "expected": "500 (QUANTITY), MSFT (ORGANIZATION), yesterday morning (DATE)"
+    },
+    {
+      "task_id": "n11",
+      "prompt": "Extract entities: The Supreme Court ruled against the EPA's mandate.",
+      "expected": "Supreme Court (ORGANIZATION), EPA (ORGANIZATION)"
+    },
+    {
+      "task_id": "n12",
+      "prompt": "Extract entities: The Treaty of Versailles was signed in the Hall of Mirrors.",
+      "expected": "Treaty of Versailles (LAW/EVENT), Hall of Mirrors (FACILITY)"
+    },
+    {
+      "task_id": "n13",
+      "prompt": "Extract entities: She lives at 123 Baker Street, London.",
+      "expected": "123 Baker Street (LOCATION), London (LOCATION)"
+    },
+    {
+      "task_id": "n14",
+      "prompt": "Extract entities: FDA approved the Pfizer-BioNTech COVID-19 vaccine.",
+      "expected": "FDA (ORGANIZATION), Pfizer-BioNTech (ORGANIZATION), COVID-19 vaccine (PRODUCT/DISEASE)"
+    },
+    {
+      "task_id": "n15",
+      "prompt": "Extract entities: The Nobel Prize in Physics 2020 was awarded to Roger Penrose.",
+      "expected": "Nobel Prize in Physics (AWARD), 2020 (DATE), Roger Penrose (PERSON)"
+    },
+    {
+      "task_id": "n16",
+      "prompt": "Extract entities: Hurricane Katrina struck New Orleans with winds over 120 mph.",
+      "expected": "Hurricane Katrina (EVENT), New Orleans (LOCATION), 120 mph (QUANTITY)"
+    },
+    {
+      "task_id": "n17",
+      "prompt": "Extract entities: The Washington Post published an article on artificial general intelligence.",
+      "expected": "The Washington Post (ORGANIZATION)"
+    },
+    {
+      "task_id": "n18",
+      "prompt": "Extract entities: I work with Python, TensorFlow, and AWS EC2 instances.",
+      "expected": "Python (PRODUCT), TensorFlow (PRODUCT), AWS EC2 (PRODUCT)"
+    },
+    {
+      "task_id": "n19",
+      "prompt": "Extract entities: The Mars Rover Curiosity landed on Aeolis Palus.",
+      "expected": "Mars Rover Curiosity (PRODUCT), Aeolis Palus (LOCATION)"
+    },
+    {
+      "task_id": "n20",
+      "prompt": "Extract entities: My flight from Narita International to Heathrow was delayed.",
+      "expected": "Narita International (FACILITY/LOCATION), Heathrow (FACILITY/LOCATION)"
+    },
+    {
+      "task_id": "n21",
+      "prompt": "Extract entities: Senator Elizabeth Warren of Massachusetts introduced a new wealth tax bill.",
+      "expected": "Elizabeth Warren (PERSON), Massachusetts (LOCATION)"
+    },
+    {
+      "task_id": "n22",
+      "prompt": "Extract entities: The Golden Gate Bridge spans the Golden Gate strait.",
+      "expected": "Golden Gate Bridge (FACILITY), Golden Gate strait (LOCATION)"
+    },
+    {
+      "task_id": "n23",
+      "prompt": "Extract entities: Operation Desert Storm began in January 1991.",
+      "expected": "Operation Desert Storm (EVENT), January 1991 (DATE)"
+    },
+    {
+      "task_id": "n24",
+      "prompt": "Extract entities: The Declaration of Independence was drafted by Thomas Jefferson.",
+      "expected": "Declaration of Independence (LAW/DOCUMENT), Thomas Jefferson (PERSON)"
+    },
+    {
+      "task_id": "n25",
+      "prompt": "Extract entities: The Large Hadron Collider is managed by CERN in Geneva.",
+      "expected": "Large Hadron Collider (FACILITY), CERN (ORGANIZATION), Geneva (LOCATION)"
+    },
+    {
+      "task_id": "n26",
+      "prompt": "Extract entities: The GDP of South Korea increased by 2.4% in the last fiscal year.",
+      "expected": "South Korea (LOCATION), 2.4% (PERCENT), last fiscal year (DATE)"
+    },
+    {
+      "task_id": "n27",
+      "prompt": "Extract entities: Beethoven's Symphony No. 9 in D minor was completed in 1824.",
+      "expected": "Beethoven (PERSON), Symphony No. 9 in D minor (WORK_OF_ART), 1824 (DATE)"
+    },
+    {
+      "task_id": "n28",
+      "prompt": "Extract entities: Apple's M1 Pro chip uses a 5-nanometer process technology.",
+      "expected": "Apple (ORGANIZATION), M1 Pro chip (PRODUCT), 5-nanometer (QUANTITY)"
+    },
+    {
+      "task_id": "n29",
+      "prompt": "Extract entities: The Magna Carta was sealed at Runnymede near Windsor.",
+      "expected": "Magna Carta (LAW/DOCUMENT), Runnymede (LOCATION), Windsor (LOCATION)"
+    },
+    {
+      "task_id": "n30",
+      "prompt": "Extract entities: He was diagnosed with Type 2 Diabetes by Dr. Gregory House at Princeton-Plainsboro Teaching Hospital.",
+      "expected": "Type 2 Diabetes (DISEASE), Dr. Gregory House (PERSON), Princeton-Plainsboro Teaching Hospital (ORGANIZATION)"
     }
-]
+  ]

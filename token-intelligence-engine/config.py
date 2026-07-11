@@ -41,7 +41,7 @@ class Config:
     # Inference
     # ------------------------------------------------------------------
 
-    provider: ProviderType = ProviderType.MOCK
+    provider: ProviderType = ProviderType.LOCAL
 
     fireworks_api_key: str | None = None
 
@@ -84,7 +84,7 @@ def load_config() -> Config:
         provider=ProviderType(
             os.getenv(
                 "PROVIDER",
-                ProviderType.MOCK.value,
+                ProviderType.FIREWORKS.value,
             )
         ),
 

@@ -1,64 +1,60 @@
+
 """
-Local GGUF inference provider.
+Local inference provider.
 """
 
-from __future__ import annotations
+from inference.provider import InferenceProvider
 
-from local.loader import load_model
+from local.client import LocalClient
 
 
-class LocalProvider:
+class LocalProvider(InferenceProvider):
 
     def __init__(self):
 
-        self.model = load_model()
+        self.client = LocalClient()
 
     def generate(
-
         self,
-
-        *,
-
         prompt: str,
-
-        model: str,
-
+        model: str | None = None,
     ) -> str:
 
-        response = self.model.create_chat_completion(
-
-            messages=[
-
-                {
-
-                    "role": "system",
-
-                    "content":
-
-                    (
-
-                        "You are a concise AI assistant. "
-
-                        "Return only the requested answer."
-
-                    ),
-
-                },
-
-                {
-
-                    "role": "user",
-
-                    "content": prompt,
-
-                },
-
-            ],
-
-            temperature=0.0,
-
-            max_tokens=256,
-
+        return self.client.generate(
+            prompt=prompt,
         )
 
-        return response["choices"][0]["message"]["content"]
+# """
+# Local inference provider backed by Ollama.
+# """
+
+# from __future__ import annotations
+
+# from inference.provider import InferenceProvider
+
+# from local.client import OllamaClient
+
+
+# class LocalProvider(InferenceProvider):
+#     """
+#     Local inference provider using an Ollama server.
+#     """
+
+#     DEFAULT_MODEL = "llama3.2:3b"
+
+#     def __init__(self) -> None:
+#         self.client = OllamaClient()
+
+#     def generate(
+#         self,
+#         prompt: str,
+#         model: str | None = None
+#     ) -> str:
+
+#         model_name = self.DEFAULT_MODEL
+
+#         return self.client.generate(
+#             prompt=prompt,
+#             model=model_name,
+#             temperature=0.0,
+#         )

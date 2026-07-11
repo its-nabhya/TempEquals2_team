@@ -1,34 +1,77 @@
 [
     {
-        "task_id": "d1",
-        "prompt": "Debug: def add(a,b): return a-b"
+      "task_id": "d1",
+      "prompt": "Debug: def greet(name) print('Hello ' + name)",
+      "expected": "Missing colon after function definition"
     },
     {
-        "task_id": "d2",
-        "prompt": "Fix this Python function that returns the maximum element."
+      "task_id": "d2",
+      "prompt": "Debug JS: const x = 5; x = 10;",
+      "expected": "Assignment to constant variable"
     },
     {
-        "task_id": "d3",
-        "prompt": "Debug the following Java code..."
+      "task_id": "d3",
+      "prompt": "Debug: for(int i=0; i<10; i--) { printf(\"%d\", i); }",
+      "expected": "Infinite loop due to decrementing i instead of incrementing"
     },
     {
-        "task_id": "d4",
-        "prompt": "Find the bug in this C++ program."
+      "task_id": "d4",
+      "prompt": "Debug Python: lst = [1,2,3]; lst[3]",
+      "expected": "IndexError: list index out of range"
     },
     {
-        "task_id": "d5",
-        "prompt": "Why does this recursion never terminate?"
+      "task_id": "d5",
+      "prompt": "Debug Java: String s = null; s.length();",
+      "expected": "NullPointerException"
     },
     {
-        "task_id": "d6",
-        "prompt": "Fix the SQL syntax error."
+      "task_id": "d6",
+      "prompt": "Debug C: int arr[5]; arr[5] = 10;",
+      "expected": "Buffer overflow / Array out of bounds"
     },
     {
-        "task_id": "d7",
-        "prompt": "Correct this JavaScript function."
+      "task_id": "d7",
+      "prompt": "Debug Python: def append_to(num, target=[]): target.append(num); return target",
+      "expected": "Mutable default argument issue"
     },
     {
-        "task_id": "d8",
-        "prompt": "Find and fix the bug in this Python loop."
+      "task_id": "d8",
+      "prompt": "Debug SQL: SELECT name FROM users WHERE id = 'abc' OR 1=1;",
+      "expected": "SQL Injection vulnerability"
+    },
+    {
+      "task_id": "d9",
+      "prompt": "Debug JS: console.log(typeof null);",
+      "expected": "Returns 'object' (known language quirk, not necessarily a bug but a type-check trap)"
+    },
+    {
+      "task_id": "d10",
+      "prompt": "Debug Python: x = 1; def f(): x = x + 1; f()",
+      "expected": "UnboundLocalError: local variable 'x' referenced before assignment"
+    },
+    {
+      "task_id": "d11",
+      "prompt": "Debug React: setInterval(() => setCount(count + 1), 1000) inside useEffect without dependency array",
+      "expected": "Stale closure / infinite re-renders or stale state value"
+    },
+    {
+      "task_id": "d12",
+      "prompt": "Debug C++: int* p = new int[10]; delete p;",
+      "expected": "Memory leak / Undefined behavior (should be delete[] p)"
+    },
+    {
+      "task_id": "d13",
+      "prompt": "Debug Python: for k, v in my_dict.items(): if v == 0: del my_dict[k]",
+      "expected": "RuntimeError: dictionary changed size during iteration"
+    },
+    {
+      "task_id": "d14",
+      "prompt": "Debug Go: for i, v := range arr { go func() { fmt.Println(v) }() }",
+      "expected": "Loop variable capture issue / prints the last element repeatedly"
+    },
+    {
+      "task_id": "d15",
+      "prompt": "Debug Bash: if [ $var == \"yes\" ]; then echo \"Y\"; fi",
+      "expected": "Syntax error if $var is empty or contains spaces (should be \"$var\")"
     }
-]
+  ]

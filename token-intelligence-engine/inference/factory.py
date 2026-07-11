@@ -17,14 +17,20 @@ class ProviderFactory:
     def create(
         config: Config,
     ) -> InferenceProvider:
+        print("=" * 60)
+        print("PROVIDER =", config.provider)
+        print("=" * 60)
 
         if config.provider is ProviderType.MOCK:
+            print("CREATING MOCK PROVIDER")
             return MockProvider()
         if config.provider is ProviderType.LOCAL:
+            print("CREATING LOCAL PROVIDER")
 
             return LocalProvider()
 
         if config.provider is ProviderType.FIREWORKS:
+            print("CREATING FIREWORKS PROVIDER")
             # return FireworksProvider(config)
             client = FireworksClient(
                 api_key=config.fireworks_api_key or "",

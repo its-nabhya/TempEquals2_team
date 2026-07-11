@@ -1,34 +1,152 @@
 [
     {
-        "task_id": "s1",
-        "prompt": "Classify the sentiment: I absolutely love this phone."
+      "task_id": "s1",
+      "prompt": "Classify sentiment: This is the best movie I have ever seen.",
+      "expected": "Positive"
     },
     {
-        "task_id": "s2",
-        "prompt": "Classify the sentiment: This laptop is terrible."
+      "task_id": "s2",
+      "prompt": "Classify sentiment: I really hated the soup.",
+      "expected": "Negative"
     },
     {
-        "task_id": "s3",
-        "prompt": "Classify the sentiment: The battery is great but the screen scratches easily."
+      "task_id": "s3",
+      "prompt": "Classify sentiment: The package arrived on Tuesday.",
+      "expected": "Neutral"
     },
     {
-        "task_id": "s4",
-        "prompt": "Classify the sentiment: The package arrived yesterday."
+      "task_id": "s4",
+      "prompt": "Classify sentiment: Absolutely fantastic service, will return!",
+      "expected": "Positive"
     },
     {
-        "task_id": "s5",
-        "prompt": "Classify the sentiment: Fantastic customer support."
+      "task_id": "s5",
+      "prompt": "Classify sentiment: It broke after one use. Horrible.",
+      "expected": "Negative"
     },
     {
-        "task_id": "s6",
-        "prompt": "Classify the sentiment: Worst purchase ever."
+      "task_id": "s6",
+      "prompt": "Classify sentiment: The color is blue and it weighs 2 lbs.",
+      "expected": "Neutral"
     },
     {
-        "task_id": "s7",
-        "prompt": "Classify the sentiment: I am satisfied with the performance."
+      "task_id": "s7",
+      "prompt": "Classify sentiment: I'm not sure if I like the new design.",
+      "expected": "Mixed"
     },
     {
-        "task_id": "s8",
-        "prompt": "Classify the sentiment: The weather is cloudy today."
+      "task_id": "s8",
+      "prompt": "Classify sentiment: Oh great, another flat tire. Just what I needed.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s9",
+      "prompt": "Classify sentiment: The food was okay, but the service was completely unacceptable.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s10",
+      "prompt": "Classify sentiment: It's not the worst phone on the market, but it has flaws.",
+      "expected": "Mixed"
+    },
+    {
+      "task_id": "s11",
+      "prompt": "Classify sentiment: The cinematography was breathtaking despite the lackluster plot.",
+      "expected": "Mixed"
+    },
+    {
+      "task_id": "s12",
+      "prompt": "Classify sentiment: I wouldn't say I disliked the play, it was just entirely forgettable.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s13",
+      "prompt": "Classify sentiment: Wow, a software update that actually removed features. Bravo.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s14",
+      "prompt": "Classify sentiment: The CEO stepped down yesterday amid restructuring.",
+      "expected": "Neutral"
+    },
+    {
+      "task_id": "s15",
+      "prompt": "Classify sentiment: While the battery life leaves much to be desired, the processor speed is unmatched.",
+      "expected": "Mixed"
+    },
+    {
+      "task_id": "s16",
+      "prompt": "Classify sentiment: You’d have to be crazy to miss out on this deal.",
+      "expected": "Positive"
+    },
+    {
+      "task_id": "s17",
+      "prompt": "Classify sentiment: The film eschews traditional narrative arcs, resulting in a confounding yet fascinating watch.",
+      "expected": "Positive"
+    },
+    {
+      "task_id": "s18",
+      "prompt": "Classify sentiment: This stock dropped 14% at the opening bell.",
+      "expected": "Neutral"
+    },
+    {
+      "task_id": "s19",
+      "prompt": "Classify sentiment: My disappointment is immeasurable, and my day is ruined.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s20",
+      "prompt": "Classify sentiment: It works.",
+      "expected": "Positive"
+    },
+    {
+      "task_id": "s21",
+      "prompt": "Classify sentiment: The margins are razor-thin, leaving investors highly anxious about Q3.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s22",
+      "prompt": "Classify sentiment: I mean, it is what it is.",
+      "expected": "Neutral"
+    },
+    {
+      "task_id": "s23",
+      "prompt": "Classify sentiment: Finally, a sequel that respects the lore while taking bold risks.",
+      "expected": "Positive"
+    },
+    {
+      "task_id": "s24",
+      "prompt": "Classify sentiment: The UI update is a masterclass in how to alienate your core demographic.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s25",
+      "prompt": "Classify sentiment: Neither groundbreaking nor terrible; entirely mediocre.",
+      "expected": "Neutral"
+    },
+    {
+      "task_id": "s26",
+      "prompt": "Classify sentiment: The author navigates complex geopolitical themes with surprising deftness.",
+      "expected": "Positive"
+    },
+    {
+      "task_id": "s27",
+      "prompt": "Classify sentiment: The sheer audacity of charging $50 for this DLC is insulting.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s28",
+      "prompt": "Classify sentiment: It's hard to overstate how fundamentally broken this mechanic is.",
+      "expected": "Negative"
+    },
+    {
+      "task_id": "s29",
+      "prompt": "Classify sentiment: The empirical data supports the null hypothesis.",
+      "expected": "Neutral"
+    },
+    {
+      "task_id": "s30",
+      "prompt": "Classify sentiment: An unapologetically triumphant return to form for the aging rockstar.",
+      "expected": "Positive"
     }
-]
+  ]

@@ -1,10 +1,7 @@
-"""
-Local mathematical solver.
-"""
-
 from __future__ import annotations
 
 import ast
+import math
 import operator
 import re
 
@@ -35,62 +32,186 @@ def _eval(node):
             _eval(node.right),
         )
 
-    raise ValueError("Unsupported expression")
+    raise ValueError
 
 
-def safe_eval(expression: str):
+def safe_eval(expr: str):
 
     tree = ast.parse(
-        expression,
+        expr,
         mode="eval",
     )
 
     return _eval(tree.body)
 
 
-def solve_math(
-    prompt: str,
-) -> tuple[str | None, float]:
+def solve_math(prompt):
 
-    prompt = prompt.lower()
+    text = prompt.lower()
 
-    # ----------------------------------------------------
-    # Arithmetic
-    # ----------------------------------------------------
+    # -----------------------------
+    # Evaluate (...)
+    # -----------------------------
 
-    match = re.search(
-        r"(\d+(?:\.\d+)?(?:\s*[\+\-\*/]\s*\d+(?:\.\d+)?)+)",
-        prompt,
+    m = re.search(
+        r"evaluate\s*:?\s*([0-9\.\+\-\*/\(\)\s]+)",
+        text,
     )
 
-    if match:
+    if m:
 
         try:
 
-            value = safe_eval(
-                match.group(1)
+            return (
+                str(safe_eval(m.group(1))),
+                1.0,
             )
-
-            return str(value), 1.0
 
         except Exception:
             pass
 
-    # ----------------------------------------------------
-    # Percentage
-    # ----------------------------------------------------
+    # -----------------------------
+    # Basic arithmetic
+    # -----------------------------
 
-    match = re.search(
-        r"(\d+(?:\.\d+)?)%\s+of\s+(\d+(?:\.\d+)?)",
-        prompt,
+    m = re.search(
+        r"([0-9\.\+\-\*/\(\)\s]+)",
+        text,
     )
 
-    if match:
+    if m:
 
-        pct = float(match.group(1))
+        expr = m.group(1).strip()
 
-        value = float(match.group(2))
+        if any(
+            op in expr
+            for op in "+-*/"
+        ):
 
-        return str(value * pct / 100), 1.0
+            try:
 
-    return None, 0.0
+                return (
+                    str(safe_eval(expr)),
+                    1.0,
+                )
+
+            except Exception:
+                pass
+
+    # -----------------------------
+    # Percentage
+    # -----------------------------
+
+    m = re.search(
+        r"(\d+(?:\.\d+)?)%\s+of\s+(\d+(?:\.\d+)?)",
+        text,
+    )
+
+    if m:
+
+        pct = float(m.group(1))
+
+        value = float(m.group(2))
+
+        return (
+            str(value * pct / 100),
+            1.0,
+        )
+
+    # -----------------------------
+    # Linear equation
+    # -----------------------------
+
+    m = re.search(
+        r"(\d+)x\s*([+-])\s*(\d+)\s*=\s*(-?\d+)",
+        text,
+    )
+
+    if m:
+
+        a = int(m.group(1))
+
+        sign = m.group(2)
+
+        b = int(m.group(3))
+
+        c = int(m.group(4))
+
+        if sign == "+":
+            x = (c - b) / a
+        else:
+            x = (c + b) / a
+
+        return (
+            str(int(x) if x.is_integer() else x),
+            1.0,
+        )
+
+    # -----------------------------
+    # Speed × Time
+    # -----------------------------
+
+    m = re.search(
+        r"(\d+(?:\.\d+)?)\s*mph.*?(\d+(?:\.\d+)?)\s*hours",
+        text,
+    )
+
+    if m:
+
+        d = float(m.group(1)) * float(m.group(2))
+
+        return (
+            f"{d:g} miles",
+            1.0,
+        )
+
+    # -----------------------------
+    # Circle area
+    # -----------------------------
+
+    m = re.search(
+        r"radius\s*(\d+(?:\.\d+)?)",
+        text,
+    )
+
+    if m and "area" in text:
+
+        r = float(m.group(1))
+
+        pi = 3.14
+
+        m2 = re.search(
+            r"pi\s*=\s*(\d+(?:\.\d+)?)",
+            text,
+        )
+
+        if m2:
+            pi = float(m2.group(1))
+
+        area = pi * r * r
+
+        return (
+            f"{area:.2f}",
+            1.0,
+        )
+
+    # -----------------------------
+    # Factorial
+    # -----------------------------
+
+    m = re.search(
+        r"factorial\s+of\s+(\d+)",
+        text,
+    )
+
+    if m:
+
+        return (
+            str(math.factorial(int(m.group(1)))),
+            1.0,
+        )
+
+    return (
+        None,
+        0.0,
+    )

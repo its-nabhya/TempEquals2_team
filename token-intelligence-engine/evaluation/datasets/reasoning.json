@@ -1,34 +1,102 @@
 [
     {
-        "task_id": "r1",
-        "prompt": "Sam, Jo and Lee each own a different pet. Jo owns the dog. Sam does not own the bird. Who owns the cat?"
+      "task_id": "r1",
+      "prompt": "If A is taller than B, and B is taller than C, is A taller than C?",
+      "expected": "Yes"
     },
     {
-        "task_id": "r2",
-        "prompt": "If all roses are flowers and some flowers fade quickly, can all roses fade quickly?"
+      "task_id": "r2",
+      "prompt": "All cats are animals. All animals need water. Do cats need water?",
+      "expected": "Yes"
     },
     {
-        "task_id": "r3",
-        "prompt": "Alice is older than Bob. Bob is older than Charlie. Who is youngest?"
+      "task_id": "r3",
+      "prompt": "If today is Tuesday, what day is 4 days from now?",
+      "expected": "Saturday"
     },
     {
-        "task_id": "r4",
-        "prompt": "There are three switches and three bulbs..."
+      "task_id": "r4",
+      "prompt": "Tom is 4 years older than Jerry. Jerry is 10. How old is Tom?",
+      "expected": "14"
     },
     {
-        "task_id": "r5",
-        "prompt": "Which number comes next: 2,4,8,16,..."
+      "task_id": "r5",
+      "prompt": "A lily pad doubles in size every day. If it takes 20 days to cover a pond, how many days to cover half the pond?",
+      "expected": "19"
     },
     {
-        "task_id": "r6",
-        "prompt": "Five people stand in a line with given constraints..."
+      "task_id": "r6",
+      "prompt": "If 3 chefs can bake 3 cakes in 3 hours, how long does it take 1 chef to bake 1 cake?",
+      "expected": "3 hours"
     },
     {
-        "task_id": "r7",
-        "prompt": "John always tells the truth. Mike always lies..."
+      "task_id": "r7",
+      "prompt": "Look at the series: 2, 4, 8, 16... What comes next?",
+      "expected": "32"
     },
     {
-        "task_id": "r8",
-        "prompt": "Two trains leave different stations..."
+      "task_id": "r8",
+      "prompt": "You have a 3-liter jug and a 5-liter jug. Can you measure exactly 4 liters?",
+      "expected": "Yes"
+    },
+    {
+      "task_id": "r9",
+      "prompt": "Mary's father has 5 daughters: Nana, Nene, Nini, Nono, and...? What is the 5th daughter's name?",
+      "expected": "Mary"
+    },
+    {
+      "task_id": "r10",
+      "prompt": "A bat and a ball cost $1.10. The bat costs $1.00 more than the ball. How much is the ball?",
+      "expected": "$0.05"
+    },
+    {
+      "task_id": "r11",
+      "prompt": "If some bloops are blops, and all blops are blips, are some bloops blips?",
+      "expected": "Yes"
+    },
+    {
+      "task_id": "r12",
+      "prompt": "There are 3 doors. One has a car, two have goats. You pick door 1. Host opens door 3 (goat). Should you switch to door 2?",
+      "expected": "Yes"
+    },
+    {
+      "task_id": "r13",
+      "prompt": "In a race, you pass the person in second place. What place are you in now?",
+      "expected": "Second place"
+    },
+    {
+      "task_id": "r14",
+      "prompt": "A man looks at a picture and says: 'Brothers and sisters I have none, but that man's father is my father's son.' Who is in the picture?",
+      "expected": "His son"
+    },
+    {
+      "task_id": "r15",
+      "prompt": "Five machines take 5 minutes to make 5 widgets. How long would it take 100 machines to make 100 widgets?",
+      "expected": "5 minutes"
+    },
+    {
+      "task_id": "r16",
+      "prompt": "You are in a dark room with a candle, a wood stove, and a gas lamp. You only have one match. What do you light first?",
+      "expected": "The match"
+    },
+    {
+      "task_id": "r17",
+      "prompt": "If five cats catch five mice in five minutes, how many cats are needed to catch 100 mice in 100 minutes?",
+      "expected": "Five cats"
+    },
+    {
+      "task_id": "r18",
+      "prompt": "Two coins add up to 30 cents, and one of them is not a nickel. What are the coins?",
+      "expected": "A quarter and a nickel"
+    },
+    {
+      "task_id": "r19",
+      "prompt": "A farmer has 17 sheep, and all but 9 die. How many are left?",
+      "expected": "9"
+    },
+    {
+      "task_id": "r20",
+      "prompt": "A snail climbs up a 10ft wall. He climbs 3ft day, slips back 2ft night. How many days to reach the top?",
+      "expected": "8 days"
     }
-]
+  ]

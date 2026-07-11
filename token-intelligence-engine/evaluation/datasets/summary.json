@@ -1,34 +1,122 @@
 [
     {
-        "task_id": "sum1",
-        "prompt": "Summarize in one sentence: Artificial Intelligence enables machines to perform tasks that normally require human intelligence."
+      "task_id": "sum1",
+      "prompt": "Summarize the text in one sentence. Text: The quick brown fox jumps over the lazy dog.",
+      "reference": "A swift fox leaps across a resting dog.",
+      "keywords": ["fox", "jumps", "dog"]
     },
     {
-        "task_id": "sum2",
-        "prompt": "Summarize: Python is a popular programming language used in web development, AI and automation."
+      "task_id": "sum2",
+      "prompt": "Summarize: Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water.",
+      "reference": "Plants create their food using sunlight, water, and carbon dioxide.",
+      "keywords": ["plants", "food", "sunlight"]
     },
     {
-        "task_id": "sum3",
-        "prompt": "Summarize the following paragraph in exactly one sentence: Machine learning allows systems to improve from data without explicit programming."
+      "task_id": "sum3",
+      "prompt": "Summarize: The Earth rotates on its axis once every 24 hours, giving us the cycle of day and night.",
+      "reference": "Earth's daily rotation causes day and night.",
+      "keywords": ["Earth", "rotation", "day and night"]
     },
     {
-        "task_id": "sum4",
-        "prompt": "Summarize: Docker packages software into portable containers."
+      "task_id": "sum4",
+      "prompt": "Summarize: Inflation is the rate at which the general level of prices for goods and services is rising, and, consequently, the purchasing power of currency is falling.",
+      "reference": "Inflation decreases purchasing power as general prices rise.",
+      "keywords": ["inflation", "prices", "purchasing power"]
     },
     {
-        "task_id": "sum5",
-        "prompt": "Summarize: Git is a distributed version control system."
+      "task_id": "sum5",
+      "prompt": "Summarize: A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape from it.",
+      "reference": "Black holes have immense gravity that traps everything, including light.",
+      "keywords": ["black hole", "gravity", "escape"]
     },
     {
-        "task_id": "sum6",
-        "prompt": "Summarize: PostgreSQL is an open-source relational database."
+      "task_id": "sum6",
+      "prompt": "Summarize: The Industrial Revolution was the transition to new manufacturing processes in Europe and the US, moving from hand production methods to machines.",
+      "reference": "The Industrial Revolution marked the shift from manual labor to machine-based manufacturing.",
+      "keywords": ["Industrial Revolution", "manufacturing", "machines"]
     },
     {
-        "task_id": "sum7",
-        "prompt": "Summarize: Kubernetes orchestrates containers."
+      "task_id": "sum7",
+      "prompt": "Summarize: Newton's first law states that an object will remain at rest or in uniform motion in a straight line unless acted upon by an external force.",
+      "reference": "Objects maintain their state of motion unless an outside force intervenes.",
+      "keywords": ["Newton", "motion", "force"]
     },
     {
-        "task_id": "sum8",
-        "prompt": "Summarize: Neural networks are inspired by biological neurons."
+      "task_id": "sum8",
+      "prompt": "Summarize: Renewable energy is energy that is collected from renewable resources, which are naturally replenished on a human timescale, such as sunlight, wind, rain, tides, waves, and geothermal heat.",
+      "reference": "Renewable energy comes from naturally replenishing sources like the sun and wind.",
+      "keywords": ["renewable energy", "replenished", "sources"]
+    },
+    {
+      "task_id": "sum9",
+      "prompt": "Summarize: Blockchain is a decentralized, distributed, and public digital ledger that is used to record transactions across many computers so that the record cannot be altered retroactively.",
+      "reference": "Blockchain is a secure, decentralized digital ledger for immutable transaction records.",
+      "keywords": ["blockchain", "ledger", "decentralized"]
+    },
+    {
+      "task_id": "sum10",
+      "prompt": "Summarize: The placebo effect is a psychological phenomenon in which the recipient perceives an improvement in condition due to personal expectations, rather than the treatment itself.",
+      "reference": "The placebo effect causes symptom improvement based on belief rather than actual medicine.",
+      "keywords": ["placebo effect", "psychological", "expectations"]
+    },
+    {
+      "task_id": "sum11",
+      "prompt": "Summarize: Quantum entanglement is a physical phenomenon that occurs when a pair or group of particles is generated, interact, or share spatial proximity in a way such that the quantum state of each particle cannot be described independently of the state of the others.",
+      "reference": "Quantum entanglement links particles so their states remain instantly connected, regardless of distance.",
+      "keywords": ["quantum entanglement", "particles", "states"]
+    },
+    {
+      "task_id": "sum12",
+      "prompt": "Summarize: Crispr-Cas9 is a unique technology that enables geneticists and medical researchers to edit parts of the genome by removing, adding or altering sections of the DNA sequence.",
+      "reference": "CRISPR-Cas9 is a tool that allows scientists to precisely edit DNA.",
+      "keywords": ["CRISPR", "edit", "DNA"]
+    },
+    {
+      "task_id": "sum13",
+      "prompt": "Summarize: The tragedy of the commons is an economic problem in which every individual has an incentive to consume a resource, but at the expense of every other individual, with no way to exclude anyone from consuming.",
+      "reference": "The tragedy of the commons describes the depletion of shared resources due to individual self-interest.",
+      "keywords": ["tragedy of the commons", "resource", "self-interest"]
+    },
+    {
+      "task_id": "sum14",
+      "prompt": "Summarize: Cognitive dissonance is the mental discomfort experienced by someone who holds two or more contradictory beliefs, ideas, or values.",
+      "reference": "Cognitive dissonance is the psychological stress of holding conflicting beliefs.",
+      "keywords": ["cognitive dissonance", "discomfort", "contradictory beliefs"]
+    },
+    {
+      "task_id": "sum15",
+      "prompt": "Summarize: API microservices architecture breaks down monolithic applications into smaller, independent services that communicate over standard protocols, allowing for independent deployment and scaling.",
+      "reference": "Microservices architecture splits large applications into modular, independently scalable services.",
+      "keywords": ["microservices", "independent", "scalable"]
+    },
+    {
+      "task_id": "sum16",
+      "prompt": "Summarize: The Turing Test, developed by Alan Turing in 1950, is a test of a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human.",
+      "reference": "The Turing Test evaluates if a machine can imitate human intelligence.",
+      "keywords": ["Turing Test", "machine", "human intelligence"]
+    },
+    {
+      "task_id": "sum17",
+      "prompt": "Summarize: Dark matter is a hypothetical form of matter thought to account for approximately 85% of the matter in the universe, inferred from gravitational effects on visible matter.",
+      "reference": "Dark matter is an invisible substance believed to make up most of the universe's mass based on its gravitational pull.",
+      "keywords": ["dark matter", "universe", "gravitational effects"]
+    },
+    {
+      "task_id": "sum18",
+      "prompt": "Summarize: Epigenetics is the study of how behaviors and environment can cause changes that affect the way genes work, modifying gene expression rather than altering the DNA sequence itself.",
+      "reference": "Epigenetics explores how environment and behavior change gene expression without altering DNA.",
+      "keywords": ["epigenetics", "gene expression", "environment"]
+    },
+    {
+      "task_id": "sum19",
+      "prompt": "Summarize: Keynesian economics argues that optimal economic performance could be achieved—and economic slumps prevented—by influencing aggregate demand through activist stabilization and economic intervention policies by the government.",
+      "reference": "Keynesian economics advocates for government intervention to manage demand and stabilize the economy.",
+      "keywords": ["Keynesian economics", "government intervention", "demand"]
+    },
+    {
+      "task_id": "sum20",
+      "prompt": "Summarize: Zero-knowledge proofs in cryptography allow one party to prove to another that they know a value x, without conveying any information apart from the fact that they know the value x.",
+      "reference": "Zero-knowledge proofs verify knowledge of a secret without revealing the secret itself.",
+      "keywords": ["zero-knowledge proofs", "cryptography", "verify"]
     }
-]
+  ]

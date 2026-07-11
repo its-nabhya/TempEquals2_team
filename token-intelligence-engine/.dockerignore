@@ -1,7 +1,3 @@
-# Git
-.git
-.gitignore
-
 # Python
 __pycache__/
 *.py[cod]
@@ -12,21 +8,26 @@ __pycache__/
 .venv/
 venv/
 
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-
 # Tests & Docs
 tests/
 docs/
 
-# Runtime Output
-output/
-*.log
-
 # OS
 .DS_Store
 Thumbs.db
+
+
+.venv/
+.git/
+.gitignore
+.vscode/
+.idea/
+
+evaluation/
+benchmarks/
+logs/
+output/
+op.txt
+*.log
+
+.env

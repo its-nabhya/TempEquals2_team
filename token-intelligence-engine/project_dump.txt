@@ -4,739 +4,6 @@
 
 ========================================================================================================================
 
-FILE: .dockerignore
-
-========================================================================================================================
-
-# Git
-.git
-.gitignore
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-.pytest_cache/
-
-# Virtual Environment
-.venv/
-venv/
-
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# Tests & Docs
-tests/
-docs/
-
-# Runtime Output
-output/
-*.log
-
-# OS
-.DS_Store
-Thumbs.db
-
-========================================================================================================================
-
-FILE: .env
-
-========================================================================================================================
-
-LOG_LEVEL=INFO
-
-PROVIDER=fireworks
-
-INPUT_PATH=input/sample_tasks.json
-OUTPUT_PATH=output/results.json
-
-REQUEST_TIMEOUT=30
-
-FIREWORKS_API_KEY=fw_615j1gdjJmfyR9zPTXxsTp
-
-FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
-
-# ALLOWED_MODELS=gemma-4-31b-it
-ALLOWED_MODELS=accounts/fireworks/models/minimax-m3
-
-========================================================================================================================
-
-FILE: .env.example
-
-========================================================================================================================
-
-LOG_LEVEL=INFO
-
-PROVIDER=mock
-
-INPUT_PATH=/input/tasks.json
-#INPUT_PATH=input/sample_tasks.json
-
-OUTPUT_PATH=/output/results.json
-
-REQUEST_TIMEOUT=30
-
-FIREWORKS_API_KEY=
-
-FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
-
-ALLOWED_MODELS=gemma-4-31b-it
-
-========================================================================================================================
-
-FILE: .gitignore
-
-========================================================================================================================
-
-# Virtual Environment
-.venv/
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Build
-dist/
-build/
-*.egg-info/
-
-
-# Runtime artifacts
-output/*
-!output/.gitkeep
-
-# Local sample data (optional)
-input/tasks.json
-
-models/*.gguf
-
-========================================================================================================================
-
-FILE: analysis\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: analysis\canonicalizer.py
-
-========================================================================================================================
-
-"""
-Prompt canonicalization.
-
-Version 1 intentionally performs no transformations.
-Future versions will normalize prompts to improve routing and
-token efficiency.
-"""
-
-from schemas.context import TaskContext
-
-
-def canonicalize(
-    context: TaskContext,
-) -> None:
-    """
-    Canonicalize the task prompt.
-
-    Currently a no-op.
-    """
-
-    context.canonical_prompt = context.task.prompt
-
-========================================================================================================================
-
-FILE: analysis\classifier.py
-
-========================================================================================================================
-
-"""
-Task classifier.
-"""
-
-from __future__ import annotations
-
-import re
-
-from constants.task_type import TaskType
-from schemas.context import TaskContext
-
-
-PATTERNS: dict[TaskType, tuple[str, ...]] = {
-
-    TaskType.MATH: (
-        r"\bcalculate\b",
-        r"\bsolve\b",
-        r"\bpercentage\b",
-        r"\bpercent\b",
-        r"\baverage\b",
-        r"\bmean\b",
-        r"\bmedian\b",
-        r"\bprobability\b",
-        r"\bhow many\b",
-        r"\bremaining\b",
-        r"\d+\s*[\+\-\*/]\s*\d+",
-    ),
-
-    TaskType.SENTIMENT: (
-        r"\bsentiment\b",
-        r"\bpositive\b",
-        r"\bnegative\b",
-        r"\bneutral\b",
-        r"\breview\b",
-        r"\bopinion\b",
-    ),
-
-    TaskType.NER: (
-        r"\bnamed entities\b",
-        r"\bextract\b",
-        r"\bperson\b",
-        r"\borganization\b",
-        r"\blocation\b",
-        r"\bdate\b",
-    ),
-
-    TaskType.SUMMARIZATION: (
-        r"\bsummarize\b",
-        r"\bsummarise\b",
-        r"\bsummary\b",
-        r"\bin one sentence\b",
-    ),
-
-    TaskType.CODE_GENERATION: (
-        r"\bwrite\b.*\bfunction\b",
-        r"\bimplement\b",
-        r"\bpython function\b",
-        r"\bwrite code\b",
-    ),
-
-    TaskType.CODE_DEBUGGING: (
-        r"\bdebug\b",
-        r"\bbug\b",
-        r"\bfix\b",
-        r"\berror\b",
-        r"\btraceback\b",
-    ),
-
-    TaskType.LOGICAL_REASONING: (
-        r"\blogic\b",
-        r"\bpuzzle\b",
-        r"\bconstraint\b",
-        r"\bwho owns\b",
-        r"\bdeduce\b",
-    ),
-}
-
-
-def classify(
-    context: TaskContext,
-) -> None:
-
-    prompt = context.task.prompt.lower()
-
-    scores = {
-        task_type: 0
-        for task_type in PATTERNS
-    }
-
-    for task_type, patterns in PATTERNS.items():
-
-        for pattern in patterns:
-
-            if re.search(pattern, prompt):
-
-                scores[task_type] += 1
-
-    if max(scores.values()) == 0:
-
-        context.task_type = TaskType.FACTUAL
-        return
-
-    context.task_type = max(
-        scores,
-        key=scores.get,
-    )
-
-========================================================================================================================
-
-FILE: analysis\features.py
-
-========================================================================================================================
-
-"""
-Lightweight feature extraction.
-"""
-
-from __future__ import annotations
-
-import re
-
-from schemas.context import TaskContext
-
-
-_CODE_PATTERN = re.compile(
-    r"(def |class |```|import )"
-)
-
-
-def extract_features(
-    context: TaskContext,
-) -> None:
-    """
-    Populate lightweight features used by the router.
-    """
-
-    prompt = context.task.prompt
-
-    context.features["length"] = len(prompt)
-
-    context.features["contains_code"] = bool(
-        _CODE_PATTERN.search(prompt)
-    )
-
-    context.features["contains_numbers"] = any(
-        ch.isdigit()
-        for ch in prompt
-    )
-
-========================================================================================================================
-
-FILE: analysis\local_engine.py
-
-========================================================================================================================
-
-"""
-Local symbolic inference engine.
-"""
-
-from constants.task_type import TaskType
-from schemas.context import TaskContext
-
-from analysis.solvers.math_solver import solve_math
-from analysis.solvers.sentiment_solver import solve_sentiment
-from analysis.solvers.ner_solver import solve_ner
-
-def solve(
-    context: TaskContext,
-) -> None:
-
-    if context.task_type is TaskType.MATH:
-
-        answer, confidence = solve_math(
-            context.task.prompt
-        )
-
-        if confidence >= 0.99:
-
-            context.local_answer = answer
-            context.confidence = confidence
-            context.local_solver = "math"
-            context.solved_locally = True
-
-        return
-
-    if context.task_type is TaskType.SENTIMENT:
-
-        answer, confidence = solve_sentiment(
-            context.task.prompt
-        )
-
-        if confidence >= 0.95:
-
-            context.local_answer = answer
-            context.confidence = confidence
-            context.local_solver = "sentiment"
-            context.solved_locally = True
-    
-    if context.task_type is TaskType.NER:
-
-        answer, confidence = solve_ner(
-            context.task.prompt
-        )
-
-        if confidence >= 0.95:
-
-            context.local_answer = answer
-            context.confidence = confidence
-            context.local_solver = "ner"
-            context.solved_locally = True
-
-        return
-
-========================================================================================================================
-
-FILE: analysis\solvers\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: analysis\solvers\math_solver.py
-
-========================================================================================================================
-
-"""
-Local mathematical solver.
-"""
-
-from __future__ import annotations
-
-import ast
-import operator
-import re
-
-OPS = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.Pow: operator.pow,
-    ast.Mod: operator.mod,
-    ast.USub: operator.neg,
-}
-
-
-def _eval(node):
-
-    if isinstance(node, ast.Constant):
-        return node.value
-
-    if isinstance(node, ast.UnaryOp):
-        return OPS[type(node.op)](
-            _eval(node.operand)
-        )
-
-    if isinstance(node, ast.BinOp):
-        return OPS[type(node.op)](
-            _eval(node.left),
-            _eval(node.right),
-        )
-
-    raise ValueError("Unsupported expression")
-
-
-def safe_eval(expression: str):
-
-    tree = ast.parse(
-        expression,
-        mode="eval",
-    )
-
-    return _eval(tree.body)
-
-
-def solve_math(
-    prompt: str,
-) -> tuple[str | None, float]:
-
-    prompt = prompt.lower()
-
-    # ----------------------------------------------------
-    # Arithmetic
-    # ----------------------------------------------------
-
-    match = re.search(
-        r"(\d+(?:\.\d+)?(?:\s*[\+\-\*/]\s*\d+(?:\.\d+)?)+)",
-        prompt,
-    )
-
-    if match:
-
-        try:
-
-            value = safe_eval(
-                match.group(1)
-            )
-
-            return str(value), 1.0
-
-        except Exception:
-            pass
-
-    # ----------------------------------------------------
-    # Percentage
-    # ----------------------------------------------------
-
-    match = re.search(
-        r"(\d+(?:\.\d+)?)%\s+of\s+(\d+(?:\.\d+)?)",
-        prompt,
-    )
-
-    if match:
-
-        pct = float(match.group(1))
-
-        value = float(match.group(2))
-
-        return str(value * pct / 100), 1.0
-
-    return None, 0.0
-
-========================================================================================================================
-
-FILE: analysis\solvers\ner_solver.py
-
-========================================================================================================================
-
-"""
-Regex-based Named Entity Recognition solver.
-"""
-
-from __future__ import annotations
-
-import re
-
-
-PERSON = re.compile(
-    r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b"
-)
-
-ORG = re.compile(
-    r"\b(OpenAI|Fireworks AI|Google|Microsoft|Apple|Meta|Amazon)\b"
-)
-
-LOCATION = re.compile(
-    r"\b(Berlin|London|Paris|Tokyo|Sydney|Delhi|Mumbai|New York)\b"
-)
-
-DATE = re.compile(
-    r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b"
-)
-
-
-def solve_ner(
-    prompt: str,
-) -> tuple[dict | None, float]:
-
-    entities = {}
-
-    persons = PERSON.findall(prompt)
-    orgs = ORG.findall(prompt)
-    locations = LOCATION.findall(prompt)
-    dates = DATE.findall(prompt)
-
-    if persons:
-        entities["person"] = persons
-
-    if orgs:
-        entities["organization"] = orgs
-
-    if locations:
-        entities["location"] = locations
-
-    if dates:
-        entities["date"] = dates
-
-    if not entities:
-        return None, 0.0
-
-    return entities, 0.95
-
-========================================================================================================================
-
-FILE: analysis\solvers\sentiment_solver.py
-
-========================================================================================================================
-
-"""
-Rule-based sentiment solver.
-"""
-
-from __future__ import annotations
-
-POSITIVE = {
-    "excellent",
-    "great",
-    "good",
-    "love",
-    "amazing",
-    "awesome",
-    "perfect",
-    "fantastic",
-    "happy",
-    "satisfied",
-}
-
-NEGATIVE = {
-    "bad",
-    "terrible",
-    "poor",
-    "awful",
-    "hate",
-    "worst",
-    "broken",
-    "disappointed",
-    "slow",
-    "scratches",
-}
-
-
-def solve_sentiment(
-    prompt: str,
-) -> tuple[str | None, float]:
-
-    text = prompt.lower()
-
-    positive = sum(
-        word in text
-        for word in POSITIVE
-    )
-
-    negative = sum(
-        word in text
-        for word in NEGATIVE
-    )
-
-    if positive == negative:
-        return None, 0.0
-
-    if positive > negative:
-        return "positive", 0.95
-
-    return "negative", 0.95
-
-========================================================================================================================
-
-FILE: app.py
-
-========================================================================================================================
-
-"""
-Application entry point.
-
-This module is responsible only for bootstrapping the application.
-
-Responsibilities:
-    1. Load application configuration.
-    2. Configure logging.
-    3. Read input tasks.
-    4. Construct the processing pipeline.
-    5. Execute the pipeline.
-    6. Persist output results.
-    7. Exit with the appropriate status code.
-
-Business logic should NEVER be implemented in this file.
-"""
-
-import logging
-import sys
-
-from config import load_config
-from core.io import load_tasks, save_results
-from core.pipeline import Pipeline
-from inference.factory import ProviderFactory
-from routing.router import Router
-from utils.logger import configure_logging
-from validation.startup import validate_startup
-
-logger = logging.getLogger(__name__)
-
-
-def main() -> int:
-    """
-    Application entry point.
-
-    Returns
-    -------
-    int
-        0 on successful execution.
-        Non-zero on failure.
-    """
-
-    try:
-        # ------------------------------------------------------------------
-        # Load application configuration
-        # ------------------------------------------------------------------
-        config = load_config()
-        
-        # ------------------------------------------------------------------
-        # Validate startup configuration
-        # ------------------------------------------------------------------
-        validate_startup(config)
-
-        logger.info("Configuration:")
-        logger.info("  Provider      : %s", config.provider)
-        logger.info("  Input Path    : %s", config.input_path)
-        logger.info("  Output Path   : %s", config.output_path)
-        logger.info("  Allowed Models: %s", config.allowed_models)
-        # ------------------------------------------------------------------
-        # Configure logging
-        # ------------------------------------------------------------------
-        configure_logging(config.log_level)
-
-        logger.info("Application started.")
-
-        # ------------------------------------------------------------------
-        # Load input tasks
-        # ------------------------------------------------------------------
-        tasks = load_tasks(config.input_path)
-
-        logger.info("Loaded %d task(s).", len(tasks))
-
-        # ------------------------------------------------------------------
-        # Build core components
-        # ------------------------------------------------------------------
-        router = Router(config)
-
-        provider = ProviderFactory.create(config)
-
-        pipeline = Pipeline(
-            router=router,
-            provider=provider,
-        )
-
-        # ------------------------------------------------------------------
-        # Execute processing pipeline
-        # ------------------------------------------------------------------
-        results = pipeline.run(tasks)
-
-        # ------------------------------------------------------------------
-        # Persist results
-        # ------------------------------------------------------------------
-        save_results(results, config.output_path)
-
-        logger.info("Successfully processed all tasks.")
-
-        return 0
-
-    except Exception:
-        logger.exception("Fatal application error.")
-        return 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())
-
-========================================================================================================================
-
 FILE: config.py
 
 ========================================================================================================================
@@ -784,7 +51,7 @@ class Config:
     # Inference
     # ------------------------------------------------------------------
 
-    provider: ProviderType = ProviderType.MOCK
+    provider: ProviderType = ProviderType.LOCAL
 
     fireworks_api_key: str | None = None
 
@@ -858,182 +125,7 @@ def load_config() -> Config:
 
 ========================================================================================================================
 
-FILE: constants\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: constants\provider.py
-
-========================================================================================================================
-
-"""
-Supported inference providers.
-
-This module defines the set of inference providers supported by the
-application. Provider types should be referenced using this enum rather
-than raw string literals throughout the codebase.
-"""
-
-from enum import StrEnum
-
-class ProviderType(StrEnum):
-    """
-    Supported inference providers.
-
-    Attributes
-    ----------
-    MOCK
-        Local provider used for development and testing.
-
-    FIREWORKS
-        Fireworks AI inference provider.
-    """
-
-    MOCK = "mock"
-    FIREWORKS = "fireworks"
-    LOCAL = "local"
-
-========================================================================================================================
-
-FILE: constants\task_type.py
-
-========================================================================================================================
-
-"""
-Task type definitions.
-"""
-
-from enum import StrEnum
-
-
-class TaskType(StrEnum):
-    """
-    Supported task categories.
-    """
-
-    FACTUAL = "factual"
-
-    MATH = "math"
-
-    SENTIMENT = "sentiment"
-
-    SUMMARIZATION = "summarization"
-
-    NER = "ner"
-
-    CODE_DEBUGGING = "code_debugging"
-
-    CODE_GENERATION = "code_generation"
-
-    LOGICAL_REASONING = "logical_reasoning"
-
-    UNKNOWN = "unknown"
-
-========================================================================================================================
-
-FILE: core\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: core\io.py
-
-========================================================================================================================
-
-"""
-Input / Output helpers.
-
-Responsible for reading tasks and writing results.
-"""
-
-from __future__ import annotations
-
-import json
-from pathlib import Path
-
-from schemas.result import TaskResult
-from schemas.task import Task
-
-
-def load_tasks(path: str) -> list[Task]:
-    """
-    Load evaluation tasks.
-
-    Parameters
-    ----------
-    path:
-        Path to tasks.json.
-
-    Returns
-    -------
-    list[Task]
-    """
-
-    with Path(path).open(
-        "r",
-        encoding="utf-8",
-    ) as file:
-        try:
-            payload = json.load(file)
-        except json.JSONDecodeError as exc:
-            raise RuntimeError(
-                f"Input file '{path}' is empty or contains invalid JSON."
-            ) from exc
-
-    return [
-        Task(
-            task_id=item["task_id"],
-            prompt=item["prompt"],
-        )
-        for item in payload
-    ]
-
-
-def save_results(
-    results: list[TaskResult],
-    path: str,
-) -> None:
-    """
-    Save task results.
-    """
-
-    payload = [
-        {
-            "task_id": result.task_id,
-            "answer": result.answer,
-        }
-        for result in results
-    ]
-
-    output = Path(path)
-
-    output.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    with output.open(
-        "w",
-        encoding="utf-8",
-    ) as file:
-
-        json.dump(
-            payload,
-            file,
-            indent=2,
-            ensure_ascii=False,
-        )
-
-========================================================================================================================
-
-FILE: core\pipeline.py
+FILE: core/pipeline.py
 
 ========================================================================================================================
 
@@ -1057,8 +149,10 @@ from analysis.local_engine import solve
 
 from optimization.prompt_optimizer import optimize_prompt
 from telemetry.decision_logger import log_decision
-
-
+from analysis.difficulty import estimate, Difficulty
+from validation.local_validator import accept_local
+from local.provider import LocalProvider
+from constants.task_type import TaskType
 
 logger = logging.getLogger(__name__)
 class Pipeline:
@@ -1080,7 +174,7 @@ class Pipeline:
     ) -> list[TaskResult]:
 
         results = []
-
+        local_provider = LocalProvider()
         for task in tasks:
 
             context = TaskContext(task)
@@ -1094,6 +188,8 @@ class Pipeline:
             )
 
             solve(context)  
+            print("Solved locally?", context.solved_locally)
+            print("Task type:", context.task_type)
 
             if context.solved_locally:
 
@@ -1107,6 +203,108 @@ class Pipeline:
                 log_decision(context)
                 results.append(result)
                 continue
+            #
+            # # -----------------------------
+            # # Local LLM fallback
+            # # -----------------------------
+
+            # try:
+
+            #     # from local.provider import LocalProvider
+
+            #     # local_provider = LocalProvider()
+
+            #     answer = local_provider.generate(
+            #         prompt=context.canonical_prompt,
+            #     )
+
+            #     if answer:
+
+            #         context.local_answer = answer
+            #         context.local_solver = "ollama"
+            #         context.confidence = 0.80
+            #         context.solved_locally = True
+
+            #         result = TaskResult(
+            #             task_id=context.task.task_id,
+            #             answer=answer,
+            #         )
+
+            #         if observer is not None:
+            #             observer(context, result)
+
+            #         log_decision(context)
+
+            #         results.append(result)
+
+            #         continue
+
+            # except Exception as exc:
+
+            #     logger.warning(
+            #         "Local inference failed: %s",
+            #         exc,
+            #     )
+            difficulty = estimate(context)
+
+            # Default
+            use_local = False
+
+            # Symbolic math already handled above.
+            # Let Ollama handle these.
+
+            if context.task_type in {
+                TaskType.FACTUAL,
+                TaskType.SUMMARIZATION,
+                TaskType.SENTIMENT,
+                TaskType.NER,
+            }:
+                use_local = True
+
+            if context.task_type in {
+                TaskType.LOGICAL_REASONING,
+                TaskType.CODE_GENERATION,
+                TaskType.CODE_DEBUGGING,
+            }:
+                use_local = False
+
+            if use_local:
+
+                try:
+                    print("CALLING LOCAL LLM")
+                    answer = local_provider.generate(
+                        prompt=context.canonical_prompt,
+                    )
+
+                    if accept_local(
+                        context.task_type,
+                        answer,
+                    ):
+
+                        context.local_answer = answer
+                        context.local_solver = "ollama"
+                        context.solved_locally = True
+
+                        result = TaskResult(
+                            task_id=context.task.task_id,
+                            answer=answer,
+                        )
+
+                        if observer:
+                            observer(context, result)
+
+                        log_decision(context)
+
+                        results.append(result)
+
+                        continue
+
+                except Exception as exc:
+
+                    logger.warning(
+                        "Local inference failed: %s",
+                        exc,
+                    )
 
             model = self.router.select_model(
                 context
@@ -1124,7 +322,7 @@ class Pipeline:
             )
 
             context.selected_model = model
-
+            print("CALLING FIREWORKS")
             answer = self.provider.generate(
                 prompt=context.canonical_prompt,
                 model=model,
@@ -1152,2314 +350,126 @@ class Pipeline:
 
 ========================================================================================================================
 
-FILE: Dockerfile
-
-========================================================================================================================
-
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /app
-
-COPY requirements.txt .
-
-# RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-# CMD ["python", "app.py"]
-ENTRYPOINT ["python", "app.py"]
-
-========================================================================================================================
-
-FILE: docs\ARCHITECTURE.md
-
-========================================================================================================================
-
-# TACTIC Architecture
-
-## Overview
-
-TACTIC (Token-Aware Cognitive Task Intelligence Compiler) is a modular AI inference framework designed to minimize inference token consumption while maintaining task accuracy.
-
-Rather than maximizing reasoning capability, the framework optimizes the following objective:
-
-```
-Minimize Expected Tokens
-
-subject to
-
-Expected Accuracy ≥ Required Threshold
-```
-
-The architecture is intentionally provider-agnostic and model-agnostic.
-
-No component depends on Gemma, Llama, Qwen or any other individual model.
-
----
-
-# Design Philosophy
-
-TACTIC follows four guiding principles.
-
-## 1. Progressive Architecture
-
-The system is designed for current requirements while remaining extensible.
-
-Abstractions are introduced only when they solve existing problems rather than anticipated ones.
-
----
-
-## 2. Single Responsibility
-
-Each module owns exactly one responsibility.
-
-Examples
-
-- app.py bootstraps the application.
-- router.py selects models.
-- provider.py performs inference.
-- compiler.py builds prompts.
-
-No module should own more than one concern.
-
----
-
-## 3. Provider Independence
-
-The routing pipeline never communicates directly with Fireworks.
-
-Instead, inference occurs through an abstract provider interface.
-
-Current providers
-
-- Mock
-- Fireworks
-
-Future providers
-
-- Ollama
-- vLLM
-- OpenRouter
-
-The remainder of the system remains unchanged.
-
----
-
-## 4. Typed Domain Objects
-
-The application communicates using strongly typed schema objects rather than dictionaries.
-
-Current schemas
-
-- Task
-- TaskContext
-- TaskResult
-
----
-
-# System Layers
-
-```
-Application
-      │
-      ▼
-Configuration
-      │
-      ▼
-Pipeline
-      │
-      ▼
-Analysis
-      │
-      ▼
-Prompt Compilation
-      │
-      ▼
-Routing
-      │
-      ▼
-Inference
-      │
-      ▼
-Validation
-      │
-      ▼
-Results
-```
-
-Each layer communicates only with the next layer.
-
----
-
-# Component Responsibilities
-
-## Application
-
-Responsible only for bootstrapping.
-
-Owns
-
-- startup
-- dependency injection
-- shutdown
-
-Never owns
-
-- routing
-- inference
-- business logic
-
----
-
-## Configuration
-
-Creates the application's Config object from environment variables and sensible defaults.
-
----
-
-## Pipeline
-
-Coordinates execution.
-
-Responsible for moving a task through the complete processing pipeline.
-
-Contains no routing or inference logic.
-
----
-
-## Analysis
-
-Performs local understanding of the task.
-
-Examples
-
-- task classification
-- feature extraction
-- canonicalization
-
-No external inference calls are allowed.
-
----
-
-## Prompt Compilation
-
-Transforms analyzed tasks into optimized prompts.
-
-Responsible only for prompt construction.
-
----
-
-## Routing
-
-Determines the most appropriate model for the current task.
-
-Uses
-
-- task characteristics
-- available models
-- optimization policy
-
-Produces a routing decision.
-
----
-
-## Inference
-
-The only layer permitted to communicate with external AI providers.
-
-Responsible only for executing inference.
-
----
-
-## Validation
-
-Verifies responses before returning them.
-
-Future responsibilities include
-
-- confidence estimation
-- JSON validation
-- local verification
-- escalation
-
----
-
-# Data Flow
-
-```
-app.py
-
-↓
-
-Config
-
-↓
-
-Task
-
-↓
-
-TaskContext
-
-↓
-
-Analysis
-
-↓
-
-Prompt Compiler
-
-↓
-
-Router
-
-↓
-
-Inference Provider
-
-↓
-
-Validation
-
-↓
-
-TaskResult
-
-↓
-
-results.json
-```
-
----
-
-# Dependency Rule
-
-Dependencies always point downward.
-
-Allowed
-
-```
-Pipeline
-
-↓
-
-Router
-
-↓
-
-Provider
-```
-
-Forbidden
-
-```
-Provider
-
-↓
-
-Pipeline
-```
-
-This guarantees an acyclic dependency graph and simplifies testing.
-
----
-
-# Future Extensions
-
-The architecture intentionally supports future additions without structural changes.
-
-Examples
-
-- Dynamic routing policies
-- Bayesian optimization
-- Contextual bandits
-- Local model support
-- Additional providers
-- Fine-tuned routing models
-
-These enhancements should occur inside existing modules rather than by reorganizing the project structure.
-
-
-<!-- Changing gears -->
-
-## Development Philosophy
-
-The architecture is implemented incrementally. Every development milestone results in a runnable system before additional intelligence is introduced.
-
-This ensures that optimization work is always performed on a functioning baseline rather than an incomplete prototype.
-
-
-### TaskContext
-
-Every task is wrapped inside a TaskContext object before entering the pipeline.
-
-TaskContext serves as the shared state passed between pipeline stages, allowing each stage to enrich the task without modifying upstream components.
-
-### Fireworks Integration
-
-Fireworks is accessed through the official OpenAI-compatible SDK.
-
-The SDK is wrapped by a thin FireworksClient abstraction so that external API changes remain isolated from the remainder of the codebase.
-
-
-### Routing Context
-
-The router receives the complete TaskContext rather than only the prompt.
-
-This allows routing decisions to evolve from prompt-based heuristics to feature-based optimization without changing the routing interface.
-
-### Provider Construction
-
-Inference providers do not construct SDK clients directly. Client creation is delegated to the ProviderFactory, ensuring providers depend only on abstractions required for inference.
-
-### Model Registry
-
-The Model Registry maintains metadata for each allowed Fireworks model, including capabilities and availability.
-
-Routing decisions query the registry rather than relying on hardcoded model identifiers.
-
-### Task Classification
-
-Task classification is performed locally using lightweight heuristics.
-
-The router receives a classified TaskContext instead of the raw prompt, allowing routing decisions to focus solely on model selection.
-
-### Local Symbolic Engine
-
-The Local Symbolic Engine executes before model routing.
-
-It attempts deterministic solutions for supported task categories and returns high-confidence answers directly, bypassing external inference when appropriate.
-
-
-## Startup Validation
-
-A dedicated startup validation phase executes before any task processing begins.
-
-Responsibilities:
-
-- Validate runtime configuration
-- Validate required environment variables
-- Validate input/output paths
-- Detect configuration errors before pipeline execution
-
-This phase intentionally performs no network calls.
-
-## Evaluation Framework
-
-The evaluation framework is intentionally isolated from the production pipeline.
-
-It reuses the production components and observes execution through a callback mechanism, ensuring benchmarking code cannot affect the submission output or runtime behavior.
-
-### v0.3 – Prompt Optimization Layer (POL)
-
-A dedicated optimization layer is introduced immediately before remote inference.
-
-Pipeline:
-
-Task
-→ Feature Extraction
-→ Classification
-→ Canonicalization
-→ Prompt Optimization
-→ Local Solver
-→ Fireworks
-
-The Prompt Optimization Layer performs lightweight, deterministic prompt normalization and task-aware response constraint injection to reduce Fireworks token usage without affecting semantic intent.
-
-### v0.4 – Prompt Optimization & Decision Logging
-
-The inference pipeline now includes a Prompt Optimization Layer (POL) before remote inference and a Decision Logging subsystem after inference.
-
-Pipeline:
-
-Task
-→ Feature Extraction
-→ Classification
-→ Canonicalization
-→ Prompt Optimization
-→ Local Solver
-→ Fireworks
-→ Verification
-→ Decision Logger
-→ Output
-
-The Fireworks client remains transport-only and is intentionally isolated from routing or optimization logic.
-
-Replace
-
-Decision Logger
-
-with
-
-Telemetry
-    ├── Decision Logger
-    ├── Metrics
-    ├── Token Statistics
-    └── Benchmark Data
-
-This gives us a cleaner long-term place for all runtime instrumentation.
-
-### v0.6 – Planned Local Inference Layer
-
-The architecture introduces a pluggable LocalLLMProvider. Model selection is performed through benchmarking lightweight GGUF models before committing to a production integration. This keeps the provider abstraction stable while allowing the underlying local model to evolve.
-
-========================================================================================================================
-
-FILE: docs\DEV_NOTEBOOK.md
-
-========================================================================================================================
-
-For ideas, proposed additions, future scope and ideas 
-
-
-
-Development Philosophy (Important)
-
-From now on, every file we write must satisfy three rules:
-
-Rule 1
-
-It should compile immediately.
-
-No pseudo-code.
-
-Rule 2
-
-It should be testable independently.
-
-Example
-
-config = load_config()
-
-assert config.request_timeout == 30
-
-before the pipeline even exists.
-
-Rule 3
-
-No TODOs.
-
-If a feature isn't needed today,
-
-don't stub it.
-
-We'll add it when we need it.
-
-========================================================================================================================
-
-FILE: docs\ENG_DECISIONS.md
-
-========================================================================================================================
-
-# Engineering Decisions
-
-This document records significant architectural decisions made during development.
-
----
-
-# ED-001
-
-## Python Version
-
-Decision
-
-Python 3.11
-
-Reason
-
-- Excellent compatibility across modern AI libraries
-- Mature ecosystem
-- Native support for StrEnum
-- Stable typing support
-
-Rejected
-
-Python 3.12
-
-Reason
-
-Some AI libraries still lag in support.
-
----
-
-# ED-002
-
-## Dependency Management
-
-Decision
-
-Use pip with requirements.txt.
-
-Reason
-
-- Universal
-- Docker friendly
-- Simple CI/CD integration
-
-Rejected
-
-Poetry
-
-Reason
-
-Additional tooling without meaningful benefit for this project.
-
----
-
-# ED-003
-
-## Progressive Architecture
-
-Decision
-
-Only introduce abstractions when required.
-
-Reason
-
-Avoid unnecessary complexity and premature optimization.
-
-Guiding Principle
-
-> Architecture should be stable. Abstractions should be earned.
-
----
-
-# ED-004
-
-## Layered Design
-
-Decision
-
-Use a strict layered architecture.
-
-Application
-
-↓
-
-Configuration
-
-↓
-
-Pipeline
-
-↓
-
-Analysis
-
-↓
-
-Prompt Compilation
-
-↓
-
-Routing
-
-↓
-
-Inference
-
-↓
-
-Validation
-
-Reason
-
-Clear separation of responsibilities.
-
----
-
-# ED-005
-
-## Provider Abstraction
-
-Decision
-
-Inference occurs through an abstract provider interface.
-
-Current implementations
-
-- Mock
-- Fireworks
-
-Reason
-
-Allows provider replacement without changing the processing pipeline.
-
----
-
-# ED-006
-
-## Provider Factory
-
-Decision
-
-Providers are instantiated through a factory.
-
-Reason
-
-Avoid conditional logic inside app.py.
-
----
-
-# ED-007
-
-## Typed Configuration
-
-Decision
-
-Represent configuration using a dataclass.
-
-Reason
-
-- type safety
-- autocomplete
-- single source of truth
-- cleaner interfaces
-
----
-
-# ED-008
-
-## Typed Domain Objects
-
-Decision
-
-Represent application data using dataclasses inside schemas/.
-
-Current objects
-
-- Task
-- TaskContext
-- TaskResult
-
-Reason
-
-Avoid passing loosely structured dictionaries throughout the application.
-
----
-
-# ED-009
-
-## Enum Usage
-
-Decision
-
-Use StrEnum for finite application states.
-
-Current usage
-
-- ProviderType
-
-Future
-
-- TaskType
-- Difficulty
-- RoutingPolicy
-
-Reason
-
-Avoid magic strings.
-
----
-
-# ED-010
-
-## Mock-first Development
-
-Decision
-
-Develop against a MockProvider before integrating Fireworks.
-
-Reason
-
-- deterministic testing
-- zero API cost
-- offline development
-- easier debugging
-
----
-
-# ED-011
-
-## Business Logic Isolation
-
-Decision
-
-Business logic must never appear inside
-
-- app.py
-- config.py
-
-Reason
-
-These files should remain orchestration-only.
-
----
-
-# ED-012
-
-## Router Independence
-
-Decision
-
-The router selects models but never performs inference.
-
-Reason
-
-Routing and inference are separate concerns.
-
----
-
-# ED-013
-
-## Fireworks Independence
-
-Decision
-
-The architecture never references specific models.
-
-Reason
-
-Models are discovered dynamically at runtime through
-
-ALLOWED_MODELS
-
-This satisfies the hackathon requirement while remaining future-proof.
-
----
-
-# ED-014
-
-## Optimization Objective
-
-TACTIC optimizes
-
-```
-Minimize Expected Tokens
-
-subject to
-
-Expected Accuracy ≥ Required Threshold
-```
-
-rather than maximizing raw model capability.
-
-This objective remains independent of the underlying inference provider.
-
----
-
-# ED-015
-
-## Logging
-
-Decision
-
-Use Python's built-in logging module.
-
-Reason
-
-Production standard.
-
-Avoid print statements outside local debugging.
-
----
-
-# ED-016
-
-## Testing Strategy
-
-Decision
-
-Every module should be independently testable.
-
-Reason
-
-Improves reliability and simplifies debugging.
-
----
-
-# ED-017
-
-## Architecture Freeze
-
-Decision
-
-The folder structure and module responsibilities are frozen for v1.0.
-
-Future improvements should occur inside modules rather than by reorganizing the repository.
-
-
-
-# ED-018
-
-## Incremental Development
-
-Decision
-
-Every implementation milestone must produce a runnable application.
-
-Reason
-
-Early integration reduces debugging complexity and keeps the project continuously testable.
-
----
-
-# ED-019
-
-## Local Symbolic First
-
-Decision
-
-Version 1 prioritizes symbolic local processing (Python, regex, AST, SymPy, spaCy where applicable) over bundling a local LLM.
-
-Reason
-
-The grading environment provides only 2 vCPUs and 4 GB RAM. Symbolic methods are deterministic, lightweight, and consume zero Fireworks tokens.
-
-
-# ED-020
-
-## Typed Pipeline State
-
-Decision
-
-Introduce a TaskContext object that flows through the entire pipeline.
-
-Reason
-
-Avoid passing multiple loosely coupled parameters between stages while keeping processing state centralized and type-safe.
-
----
-
-# ED-021
-
-## Pathlib
-
-Decision
-
-Use pathlib for filesystem operations.
-
-Reason
-
-Provides a modern, platform-independent API and improves readability over os.path.
-
-# ED-022
-
-## OpenAI SDK Wrapper
-
-Decision
-
-Wrap the OpenAI-compatible Fireworks SDK inside a FireworksClient.
-
-Reason
-
-Avoid coupling the pipeline to a third-party SDK.
-
----
-
-# ED-023
-
-## Mock-first Provider Development
-
-Decision
-
-Implement MockProvider before FireworksProvider.
-
-Reason
-
-Allows deterministic testing of the complete execution pipeline without consuming API credits.
-
----
-
-# ED-024
-
-## Router API
-
-Decision
-
-The router is responsible only for selecting a model.
-
-Inference remains exclusively inside the provider layer.
-
-# ED-025
-
-## TaskContext as Pipeline State
-
-Decision
-
-Routing operates on the TaskContext rather than the raw prompt.
-
-Reason
-
-Future routing decisions require additional information such as task classification, difficulty estimation, confidence, and extracted features. Passing TaskContext avoids repeated interface changes while preserving separation between routing and inference.
-
-# ED-026
-
-## Provider Dependency Injection
-
-Decision
-
-FireworksProvider receives a FireworksClient instance instead of constructing one internally.
-
-Reason
-
-This separates provider logic from client construction, improves testability, and keeps SDK-specific initialization outside the provider.
-
-# ED-027
-
-## Capability-Based Model Registry
-
-Decision
-
-Represent models as structured ModelProfile objects instead of raw strings.
-
-Reason
-
-Allows routing policies to reason over model capabilities while remaining independent of specific model identifiers.
-
----
-
-# ED-028
-
-## Local Feature Extraction
-
-Decision
-
-Extract inexpensive heuristic features locally before routing.
-
-Reason
-
-Feature extraction incurs zero Fireworks tokens and provides useful signals for routing decisions.
-
-
-# ED-029
-
-## Deterministic Task Classification
-
-Decision
-
-Implement the initial task classifier using local heuristic rules instead of an LLM.
-
-Reason
-
-The hackathon evaluation rewards lower Fireworks token usage. Deterministic classification provides a strong routing signal at zero inference cost.
-
----
-
-# ED-030
-
-## Capability-Driven Routing
-
-Decision
-
-The router selects models based on task capabilities rather than prompt text.
-
-Reason
-
-Separating task understanding from routing simplifies both components and allows routing policies to evolve independently.
-
-# ED-031
-
-## Local-First Inference
-
-Decision
-
-Attempt deterministic local solutions before any Fireworks API call.
-
-Reason
-
-The hackathon scores only Fireworks token usage. Local computation is effectively free and should be exhausted before external inference.
-
----
-
-# ED-032
-
-## Solver Isolation
-
-Decision
-
-Implement independent symbolic solvers for each task category.
-
-Reason
-
-Task-specific solvers evolve independently, are reusable, and keep the Local Symbolic Engine focused solely on orchestration.
-
-# ED-033
-
-## Submission-First Development
-
-Decision
-
-Prioritize producing a fully functional submission before implementing token-saving optimizations.
-
-Reason
-
-A valid submission establishes a measurable baseline and minimizes integration risk. Subsequent optimization work can then be evaluated empirically against this baseline.
-
-# ED-034
-
-## Baseline Before Optimization
-
-Decision
-
-Keep the initial dependency set intentionally minimal.
-
-Reason
-
-Reducing moving parts improves submission reliability and provides a stable baseline for measuring future optimization work.
-
-# ED-035
-
-## Local Validation Before Containerization
-
-Decision
-
-Perform a successful local execution before building the Docker image.
-
-Reason
-
-Debugging Python runtime issues is significantly faster outside the container. Docker should validate packaging, not application correctness.
-
-# ED-036
-
-## Runtime-First Validation
-
-Decision
-
-Freeze feature development once the core execution pipeline is assembled and prioritize end-to-end runtime validation.
-
-Reason
-
-Resolving integration issues before introducing additional functionality reduces debugging complexity and establishes a stable baseline for future optimization.
-
-# ED-037
-
-## Incremental Local Engine
-
-Decision
-
-Keep the Local Symbolic Engine integrated into the architecture but disable it until task-specific solvers are implemented and validated.
-
-Reason
-
-This preserves the intended execution flow while minimizing integration risk for the first runnable baseline.
-
-# ED-038
-
-## Fail-Fast External API Handling
-
-Decision
-
-Wrap Fireworks SDK calls with explicit validation and error propagation.
-
-Reason
-
-External API failures should produce actionable runtime errors rather than ambiguous SDK exceptions, improving debugging and operational reliability.
-
-# ED-039
-
-## Environment-Based Configuration
-
-Decision
-
-Use `.env` only for local development while relying on injected environment variables in the hackathon runtime.
-
-Reason
-
-This preserves compatibility with the evaluation harness while providing a convenient local development experience.
-
-# ED-040
-
-## Structured Runtime Validation
-
-Decision
-
-Validate configuration, filesystem paths, and input data independently before debugging application logic.
-
-Reason
-
-Separating startup validation from business logic simplifies fault isolation and reduces debugging time during integration.
-
-# ED-041
-
-## Baseline Freeze
-
-Decision
-
-Freeze the execution pipeline after the first successful end-to-end run.
-
-Reason
-
-Subsequent development focuses on stabilization, testing, and measurable optimization rather than structural changes.
-
-# ED-042
-
-## Stable Provider Interface
-
-Decision
-
-Keep the inference provider interface limited to `generate(prompt, model)` during the baseline phase.
-
-Reason
-
-A minimal interface reduces coupling and keeps provider implementations interchangeable. Additional metadata such as token usage and latency can be introduced later through richer return objects without affecting routing logic.
-
-# ED-043
-
-## Environment Separation
-
-Decision
-
-Treat local development and hackathon evaluation as separate execution environments.
-
-Reason
-
-The public Fireworks account and the hackathon judging infrastructure may expose different model inventories while sharing the same inference interface. The application therefore relies exclusively on configuration for model selection rather than embedding model identifiers in source code.
-
-# ED-044
-
-## Baseline Freeze After Successful Fireworks Validation
-
-Decision
-
-Freeze the inference architecture after the first successful end-to-end Fireworks execution.
-
-Reason
-
-The architecture has now been validated across configuration, routing, inference, verification, and serialization. Future work should focus on deployment, benchmarking, and optimization rather than structural changes.
-
-# ED-046
-
-## Runtime Configuration Through Environment Variables
-
-Decision
-
-Docker containers must receive runtime configuration exclusively through environment variables.
-
-Reason
-
-The hackathon evaluation harness injects configuration dynamically. Avoiding `.env` inside the container ensures local testing matches production behavior.
-
-# ED-047
-
-## Fail Fast During Startup
-
-Decision
-
-Validate runtime configuration before loading tasks or constructing the processing pipeline.
-
-Reason
-
-Configuration errors should surface immediately with actionable messages rather than propagating into downstream components.
-
-# ED-048
-
-## Separate Evaluation from Production
-
-Decision
-
-Introduce a dedicated evaluation package that observes pipeline execution without modifying the production output schema.
-
-Reason
-
-Benchmarking and experimentation require additional metrics that are not part of the hackathon submission format. Separating evaluation concerns keeps the production path minimal while enabling rapid experimentation.
-
-## ED-007: Introduce Prompt Optimization Layer
-
-Decision:
-Introduce a dedicated optimization layer before every Fireworks request.
-
-Reason:
-Research (LLMLingua-2 and concise reasoning) suggests that reducing prompt verbosity and constraining output format lowers token consumption without requiring model retraining.
-
-Tradeoff:
-The optimizer remains deterministic and conservative to avoid degrading accuracy before the 80% accuracy gate.
-
-## ED-008: Keep Fireworks Client Transport-Only
-
-Decision:
-Prompt optimization and routing logic are implemented outside the Fireworks client.
-
-Reason:
-The client should remain a thin wrapper around the OpenAI-compatible API. This keeps inference transport independent from optimization strategy and allows future providers (e.g., Local LLM) to share the same preprocessing pipeline.
-
-Tradeoff:
-An additional preprocessing step exists in the pipeline, but provider implementations remain simple and interchangeable.
-
-## ED-009: Avoid Standard Library Module Shadowing
-
-Decision:
-Project packages must not reuse Python standard library module names.
-
-Reason:
-Using names such as `logging`, `json`, or `typing` causes Python to import project packages instead of the standard library, leading to runtime failures and difficult-to-debug behavior.
-
-Chosen Solution:
-Rename the internal logging package to `telemetry`.
-
-Tradeoff:
-Minor import updates, but eliminates namespace collisions and keeps the project compatible with third-party libraries.
-
-## ED-011: Prioritize Model Selection Before Integration
-
-Decision:
-Benchmark multiple lightweight GGUF models before integrating local inference.
-
-Reason:
-The evaluation environment is constrained (4 GB RAM, 2 vCPU, <10 GB image). Selecting the best model based on measured performance reduces integration risk and avoids rework.
-
-Tradeoff:
-Slight upfront benchmarking effort, but faster overall iteration and a higher-confidence integration.
-
-========================================================================================================================
-
-FILE: docs\RUNBOOK.md
-
-========================================================================================================================
-
-# Runbook
-
-## Local Development
-
-1. Activate venv
-
-2. Install requirements
-
-3. Configure .env
-
-4. Run
-
-python app.py
-
----
-
-## Fireworks Test
-
-PROVIDER=fireworks
-
-Run:
-
-python app.py
-
-Expected:
-
-output/results.json
-
----
-
-## Docker Build
-
-docker build -t token-intelligence-engine .
-
----
-
-## Docker Run
-
-docker run ...
-
-# Milestone 1
-
-Status: ✅ Complete
-
-The application successfully executes end-to-end using the mock inference provider.
-
-Next milestone:
-
-Replace the mock provider with the Fireworks provider while preserving the execution pipeline and output schema.
-
-## Milestone 2 — Fireworks Smoke Test
-
-Goal
-
-Execute one successful request against Fireworks using the production inference pipeline.
-
-Acceptance Criteria
-
-- Configuration loads correctly.
-- Fireworks API request succeeds.
-- Response is written to `output/results.json`.
-- Application exits with code 0.
-
-
-## 404 Model Not Found
-
-Symptoms
-
-- HTTP 404
-- "Model not found"
-
-Cause
-
-The Fireworks account does not recognize the supplied model identifier.
-
-Resolution
-
-For local development, configure `ALLOWED_MODELS` with the model identifier available to your account.
-
-Do not hardcode these values in source code. The hackathon runtime injects its own `ALLOWED_MODELS`.
-
-
-## Milestone 3 — Docker
-
-Goal
-
-Package the application into a Linux container that behaves identically to the hackathon judging environment.
-
-Acceptance Criteria
-
-- Docker image builds successfully.
-- Container starts successfully.
-- Reads `/input/tasks.json`.
-- Writes `/output/results.json`.
-- Exits with code `0`.
-
-
-## Docker Environment Variables
-
-The Docker image intentionally does not rely on `.env`.
-
-For local testing, pass all required environment variables using `docker run -e ...`.
-
-This mirrors the hackathon judging harness, which injects configuration at runtime.
-
-========================================================================================================================
-
-FILE: dump_proj.py
-
-========================================================================================================================
-
-from pathlib import Path
-import os
-
-ROOT = Path(".").resolve()
-OUTPUT_FILE = ROOT / "project_dump.txt"
-
-# -------------------------------
-# Directories to ignore
-# -------------------------------
-
-IGNORE_DIRS = {
-    ".git",
-    ".venv",
-    "venv",
-    "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".idea",
-    ".vscode",
-    "node_modules",
-    "dist",
-    "build",
-    ".ruff_cache",
-    ".cache",
-    "models",          # GGUFs
-    "output",
-    "evaluation/reports",
-}
-
-# -------------------------------
-# File extensions to ignore
-# -------------------------------
-
-IGNORE_EXTENSIONS = {
-    ".pyc",
-    ".pyo",
-    ".pyd",
-    ".so",
-    ".dll",
-    ".exe",
-    ".bin",
-    ".gguf",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".bmp",
-    ".ico",
-    ".pdf",
-    ".zip",
-    ".tar",
-    ".gz",
-    ".7z",
-    ".mp4",
-    ".mov",
-    ".avi",
-    ".wav",
-    ".mp3",
-    ".csv",
-    ".sqlite",
-    ".db",
-    ".log",
-}
-
-# -------------------------------
-# Specific files to ignore
-# -------------------------------
-
-IGNORE_FILES = {
-    "project_dump.txt",
-    ".DS_Store",
-}
-
-MAX_FILE_SIZE = 1024 * 1024  # 1 MB
-
-
-def should_skip(path: Path):
-    parts = set(path.parts)
-
-    if parts & IGNORE_DIRS:
-        return True
-
-    if path.name in IGNORE_FILES:
-        return True
-
-    if path.suffix.lower() in IGNORE_EXTENSIONS:
-        return True
-
-    if not path.is_file():
-        return True
-
-    try:
-        if path.stat().st_size > MAX_FILE_SIZE:
-            return True
-    except Exception:
-        return True
-
-    return False
-
-
-def write_separator(f):
-    f.write("\n")
-    f.write("=" * 120)
-    f.write("\n\n")
-
-
-with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-
-    out.write("# PROJECT DUMP\n")
-    out.write(f"# Root: {ROOT}\n\n")
-
-    files = sorted(ROOT.rglob("*"))
-
-    for file in files:
-
-        if should_skip(file):
-            continue
-
-        relative = file.relative_to(ROOT)
-
-        print(relative)
-
-        write_separator(out)
-
-        out.write(f"FILE: {relative}\n")
-
-        write_separator(out)
-
-        try:
-            text = file.read_text(encoding="utf-8")
-
-        except UnicodeDecodeError:
-            out.write("[Binary / Non UTF-8 File]\n")
-            continue
-
-        except Exception as e:
-            out.write(f"[Could not read file: {e}]\n")
-            continue
-
-        out.write(text)
-
-        if not text.endswith("\n"):
-            out.write("\n")
-
-print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
-
-========================================================================================================================
-
-FILE: evaluation\__init__.py
+FILE: routing/router.py
 
 ========================================================================================================================
 
 """
-Evaluation utilities.
+Simple routing policy.
+
+Version 1 simply selects the first available model.
 """
 
-========================================================================================================================
+from config import Config
 
-FILE: evaluation\benchmark.py
+from routing.registry import ModelRegistry
+from schemas.context import TaskContext
+from constants.task_type import TaskType
 
-========================================================================================================================
+class Router:
 
-import time
-import sys
-from config import load_config
-from core.io import load_tasks
-from core.pipeline import Pipeline
+    def __init__(
+        self,
+        config: Config,
+    ) -> None:
 
-from inference.factory import ProviderFactory
-from routing.router import Router
-
-from evaluation.metrics import Metrics
-from evaluation.report import print_report
-
-
-metrics = Metrics()
-
-
-def observe(context, result):
-
-    metrics.total_tasks += 1
-
-    task_type = context.task_type.name
-
-    metrics.task_type_usage[task_type] = (
-        metrics.task_type_usage.get(
-            task_type,
-            0,
-        )
-        + 1
-    )
-
-    if context.confidence:
-
-        metrics.confidence_sum += context.confidence
-
-        metrics.confidence_count += 1
-
-    if context.solved_locally:
-
-        metrics.solved_locally += 1
-
-        solver = context.local_solver or "unknown"
-
-        metrics.local_solver_usage[solver] = (
-            metrics.local_solver_usage.get(
-                solver,
-                0,
-            )
-            + 1
+        self.registry = ModelRegistry(
+            config.allowed_models
         )
 
-    else:
+    def select_model(
+        self,
+        context: TaskContext,
+    ) -> str:
+        """
+        Select a model for the task.
 
-        metrics.fireworks_calls += 1
+        Future versions will use task features and
+        capabilities to optimize routing.
+        """
 
-        if context.selected_model:
+        if context.task_type is TaskType.CODE_GENERATION:
 
-            metrics.model_usage[
-                context.selected_model
-            ] = (
-                metrics.model_usage.get(
-                    context.selected_model,
-                    0,
-                )
-                + 1
+            models = self.registry.by_capability(
+                "code"
             )
 
-
-def main():
-
-    config = load_config()
-
-    dataset = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else config.input_path
-    )
-
-    tasks = load_tasks(dataset)
-
-    router = Router(config)
-
-    provider = ProviderFactory.create(config)
-
-    pipeline = Pipeline(
-        router=router,
-        provider=provider,
-    )
-
-    start = time.perf_counter()
-
-    pipeline.run(
-        tasks,
-        observer=observe,
-    )
-
-    metrics.execution_time = (
-        time.perf_counter() - start
-    )
-
-    print_report(metrics)
+            if models:
+                return models[0].model_id
 
 
-if __name__ == "__main__":
-    main()
+        if context.task_type is TaskType.CODE_DEBUGGING:
 
-========================================================================================================================
-
-FILE: evaluation\benchmark_all.py
-
-========================================================================================================================
-
-"""
-Run all benchmark datasets.
-"""
-
-from __future__ import annotations
-
-import json
-import time
-from pathlib import Path
-
-from config import load_config
-from core.io import load_tasks
-
-from core.pipeline import Pipeline
-from inference.factory import ProviderFactory
-from routing.router import Router
-
-from evaluation.metrics import Metrics
-
-
-DATASET_DIR = Path("evaluation/datasets")
-
-
-def observe(metrics):
-
-    def _observe(context, result):
-
-        metrics.total_tasks += 1
-
-        if context.solved_locally:
-
-            metrics.solved_locally += 1
-
-            solver = context.local_solver or "unknown"
-
-            metrics.local_solver_usage[solver] = (
-                metrics.local_solver_usage.get(
-                    solver,
-                    0,
-                )
-                + 1
+            models = self.registry.by_capability(
+                "debugging"
             )
 
-        else:
-
-            metrics.fireworks_calls += 1
-
-    return _observe
+            if models:
+                return models[0].model_id
 
 
-def benchmark(dataset_path: Path):
-    if dataset_path.stat().st_size == 0:
-        return Metrics()
+        if context.task_type is TaskType.LOGICAL_REASONING:
 
-    config = load_config()
-
-    router = Router(config)
-
-    provider = ProviderFactory.create(config)
-
-    pipeline = Pipeline(
-        router=router,
-        provider=provider,
-    )
-
-    metrics = Metrics()
-
-    tasks = load_tasks(str(dataset_path))
-
-    start = time.perf_counter()
-
-    pipeline.run(
-        tasks,
-        observer=observe(metrics),
-    )
-
-    metrics.execution_time = (
-        time.perf_counter() - start
-    )
-
-    return metrics
-
-
-def main():
-
-    print("\n")
-    print("=" * 60)
-    print("BENCHMARK REPORT")
-    print("=" * 60)
-
-    total_tasks = 0
-    total_local = 0
-    total_fw = 0
-
-    # for dataset in sorted(DATASET_DIR.glob("*.json")):
-    DATASETS = [
-    "math.json",
-    "sentiment.json",
-    "ner.json",
-    "summary.json",
-    "reasoning.json",
-    "code_debug.json",
-    "code_generation.json",
-    "factual.json",
-    ]
-
-    for name in DATASETS:
-
-        dataset = DATASET_DIR / name
-
-        if not dataset.exists():
-            continue
-
-        metrics = benchmark(dataset)
-
-        total_tasks += metrics.total_tasks
-        total_local += metrics.solved_locally
-        total_fw += metrics.fireworks_calls
-
-        print()
-
-        print(dataset.stem.upper())
-
-        print(
-            f"Tasks            : {metrics.total_tasks}"
-        )
-
-        print(
-            f"Local            : {metrics.solved_locally}"
-        )
-
-        print(
-            f"Fireworks        : {metrics.fireworks_calls}"
-        )
-
-        print(
-            f"Time             : {metrics.execution_time:.2f}s"
-        )
-
-    print()
-
-    print("=" * 60)
-
-    print("OVERALL")
-
-    coverage = (
-        total_local
-        / total_tasks
-        * 100
-    )
-
-    print(f"Tasks        : {total_tasks}")
-    print(f"Local        : {total_local}")
-    print(f"Fireworks    : {total_fw}")
-    print(f"Coverage     : {coverage:.1f}%")
-    print(
-        f"{dataset.stem:<20}"
-        f"{metrics.solved_locally:>4}/"
-        f"{metrics.total_tasks:<4}"
-        f"   "
-        f"{metrics.execution_time:.2f}s"
-    )
-
-    if total_tasks:
-
-        print(
-            f"Coverage         : "
-            f"{100 * total_local / total_tasks:.1f}%"
-        )
-
-    print("=" * 60)
-
-
-if __name__ == "__main__":
-    main()
+            models = self.registry.by_capability(
+                "reasoning")
+            if models:
+                return models[0].model_id
+        
+        return self.registry.first()
 
 ========================================================================================================================
 
-FILE: evaluation\datasets\code_debug.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "d1",
-        "prompt": "Debug: def add(a,b): return a-b"
-    },
-    {
-        "task_id": "d2",
-        "prompt": "Fix this Python function that returns the maximum element."
-    },
-    {
-        "task_id": "d3",
-        "prompt": "Debug the following Java code..."
-    },
-    {
-        "task_id": "d4",
-        "prompt": "Find the bug in this C++ program."
-    },
-    {
-        "task_id": "d5",
-        "prompt": "Why does this recursion never terminate?"
-    },
-    {
-        "task_id": "d6",
-        "prompt": "Fix the SQL syntax error."
-    },
-    {
-        "task_id": "d7",
-        "prompt": "Correct this JavaScript function."
-    },
-    {
-        "task_id": "d8",
-        "prompt": "Find and fix the bug in this Python loop."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\code_generation.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "c1",
-        "prompt": "Write a Python function that returns the second largest element in a list."
-    },
-    {
-        "task_id": "c2",
-        "prompt": "Implement binary search in Python."
-    },
-    {
-        "task_id": "c3",
-        "prompt": "Write a Java class for a stack."
-    },
-    {
-        "task_id": "c4",
-        "prompt": "Implement merge sort."
-    },
-    {
-        "task_id": "c5",
-        "prompt": "Write a SQL query to find duplicate rows."
-    },
-    {
-        "task_id": "c6",
-        "prompt": "Write a Python function to reverse a linked list."
-    },
-    {
-        "task_id": "c7",
-        "prompt": "Implement Dijkstra's algorithm."
-    },
-    {
-        "task_id": "c8",
-        "prompt": "Write a REST API endpoint in Flask."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\factual.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "f1",
-        "prompt": "What is the capital of Australia?"
-    },
-    {
-        "task_id": "f2",
-        "prompt": "Who wrote Pride and Prejudice?"
-    },
-    {
-        "task_id": "f3",
-        "prompt": "Explain how photosynthesis works."
-    },
-    {
-        "task_id": "f4",
-        "prompt": "What is HTTP?"
-    },
-    {
-        "task_id": "f5",
-        "prompt": "What is the largest planet in the Solar System?"
-    },
-    {
-        "task_id": "f6",
-        "prompt": "Why is the sky blue?"
-    },
-    {
-        "task_id": "f7",
-        "prompt": "Define polymorphism in object-oriented programming."
-    },
-    {
-        "task_id": "f8",
-        "prompt": "What is a blockchain?"
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\math.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "m1",
-        "prompt": "14 + 9"
-    },
-    {
-        "task_id": "m2",
-        "prompt": "125 * 18"
-    },
-    {
-        "task_id": "m3",
-        "prompt": "25% of 320"
-    },
-    {
-        "task_id": "m4",
-        "prompt": "100 / 8"
-    },
-    {
-        "task_id": "m5",
-        "prompt": "A shop has 250 apples. It sells 40. How many remain?"
-    },
-    {
-        "task_id": "m6",
-        "prompt": "Calculate 12 * (4 + 3)"
-    },
-    {
-        "task_id": "m7",
-        "prompt": "18 squared"
-    },
-    {
-        "task_id": "m8",
-        "prompt": "Find the average of 8, 12 and 16."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\ner.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "n1",
-        "prompt": "Extract named entities: Maria Sanchez joined Fireworks AI in Berlin last March."
-    },
-    {
-        "task_id": "n2",
-        "prompt": "Extract entities: Sundar Pichai spoke at Google."
-    },
-    {
-        "task_id": "n3",
-        "prompt": "Extract entities: Apple released a new product in London."
-    },
-    {
-        "task_id": "n4",
-        "prompt": "Extract entities: Elon Musk visited Tokyo."
-    },
-    {
-        "task_id": "n5",
-        "prompt": "Extract entities: Satya Nadella works at Microsoft."
-    },
-    {
-        "task_id": "n6",
-        "prompt": "Extract entities: Jeff Bezos founded Amazon."
-    },
-    {
-        "task_id": "n7",
-        "prompt": "Extract entities: Tim Cook spoke in Paris."
-    },
-    {
-        "task_id": "n8",
-        "prompt": "Extract entities: Sam Altman leads OpenAI."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\reasoning.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "r1",
-        "prompt": "Sam, Jo and Lee each own a different pet. Jo owns the dog. Sam does not own the bird. Who owns the cat?"
-    },
-    {
-        "task_id": "r2",
-        "prompt": "If all roses are flowers and some flowers fade quickly, can all roses fade quickly?"
-    },
-    {
-        "task_id": "r3",
-        "prompt": "Alice is older than Bob. Bob is older than Charlie. Who is youngest?"
-    },
-    {
-        "task_id": "r4",
-        "prompt": "There are three switches and three bulbs..."
-    },
-    {
-        "task_id": "r5",
-        "prompt": "Which number comes next: 2,4,8,16,..."
-    },
-    {
-        "task_id": "r6",
-        "prompt": "Five people stand in a line with given constraints..."
-    },
-    {
-        "task_id": "r7",
-        "prompt": "John always tells the truth. Mike always lies..."
-    },
-    {
-        "task_id": "r8",
-        "prompt": "Two trains leave different stations..."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\sample.json
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: evaluation\datasets\sentiment.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "s1",
-        "prompt": "Classify the sentiment: I absolutely love this phone."
-    },
-    {
-        "task_id": "s2",
-        "prompt": "Classify the sentiment: This laptop is terrible."
-    },
-    {
-        "task_id": "s3",
-        "prompt": "Classify the sentiment: The battery is great but the screen scratches easily."
-    },
-    {
-        "task_id": "s4",
-        "prompt": "Classify the sentiment: The package arrived yesterday."
-    },
-    {
-        "task_id": "s5",
-        "prompt": "Classify the sentiment: Fantastic customer support."
-    },
-    {
-        "task_id": "s6",
-        "prompt": "Classify the sentiment: Worst purchase ever."
-    },
-    {
-        "task_id": "s7",
-        "prompt": "Classify the sentiment: I am satisfied with the performance."
-    },
-    {
-        "task_id": "s8",
-        "prompt": "Classify the sentiment: The weather is cloudy today."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\datasets\summary.json
-
-========================================================================================================================
-
-[
-    {
-        "task_id": "sum1",
-        "prompt": "Summarize in one sentence: Artificial Intelligence enables machines to perform tasks that normally require human intelligence."
-    },
-    {
-        "task_id": "sum2",
-        "prompt": "Summarize: Python is a popular programming language used in web development, AI and automation."
-    },
-    {
-        "task_id": "sum3",
-        "prompt": "Summarize the following paragraph in exactly one sentence: Machine learning allows systems to improve from data without explicit programming."
-    },
-    {
-        "task_id": "sum4",
-        "prompt": "Summarize: Docker packages software into portable containers."
-    },
-    {
-        "task_id": "sum5",
-        "prompt": "Summarize: Git is a distributed version control system."
-    },
-    {
-        "task_id": "sum6",
-        "prompt": "Summarize: PostgreSQL is an open-source relational database."
-    },
-    {
-        "task_id": "sum7",
-        "prompt": "Summarize: Kubernetes orchestrates containers."
-    },
-    {
-        "task_id": "sum8",
-        "prompt": "Summarize: Neural networks are inspired by biological neurons."
-    }
-]
-
-========================================================================================================================
-
-FILE: evaluation\metrics.py
+FILE: inference/factory.py
 
 ========================================================================================================================
 
 """
-Evaluation metrics.
+Inference provider factory.
 """
 
-from dataclasses import dataclass, field
+from config import Config
+from constants.provider import ProviderType
 
+from inference.fireworks import FireworksProvider
+from inference.mock import MockProvider
+from inference.provider import InferenceProvider
+from inference.client import FireworksClient
+from local.provider import LocalProvider
 
-@dataclass(slots=True)
-class Metrics:
-    total_tasks: int = 0
-    solved_locally: int = 0
-    fireworks_calls: int = 0
-    failed_tasks: int = 0
-    execution_time: float = 0.0
-    local_solver_usage: dict[str,int] = field(
-        default_factory = dict
-    )
-    task_type_usage: dict[str, int] = field(
-        default_factory=dict
-    )
+class ProviderFactory:
 
-    model_usage: dict[str, int] = field(
-        default_factory=dict
-    )
+    @staticmethod
+    def create(
+        config: Config,
+    ) -> InferenceProvider:
+        print("=" * 60)
+        print("PROVIDER =", config.provider)
+        print("=" * 60)
 
-    confidence_sum: float = 0.0
+        if config.provider is ProviderType.MOCK:
+            print("CREATING MOCK PROVIDER")
+            return MockProvider()
+        if config.provider is ProviderType.LOCAL:
+            print("CREATING LOCAL PROVIDER")
 
-    confidence_count: int = 0
+            return LocalProvider()
+
+        if config.provider is ProviderType.FIREWORKS:
+            print("CREATING FIREWORKS PROVIDER")
+            # return FireworksProvider(config)
+            client = FireworksClient(
+                api_key=config.fireworks_api_key or "",
+                base_url=config.fireworks_base_url or "",
+            )
+            return FireworksProvider(client)
+
+        raise ValueError(
+            f"Unsupported provider: {config.provider}"
+        )
 
 ========================================================================================================================
 
-FILE: evaluation\report.py
-
-========================================================================================================================
-
-"""
-Reporting utilities.
-"""
-from evaluation.metrics import Metrics
-
-
-def print_report(
-    metrics: Metrics,
-) -> None:
-
-    print()
-    print("=" * 60)
-    print("Evaluation Report")
-    print("=" * 60)
-
-    print(f"Tasks              : {metrics.total_tasks}")
-    print(f"Solved Locally     : {metrics.solved_locally}")
-    print(f"Fireworks Calls    : {metrics.fireworks_calls}")
-    print(f"Failures           : {metrics.failed_tasks}")
-    print(f"Execution Time     : {metrics.execution_time:.2f}s")
-
-    if metrics.total_tasks:
-
-        coverage = (
-            metrics.solved_locally
-            / metrics.total_tasks
-            * 100
-        )
-
-        print(
-            f"Local Coverage     : {coverage:.1f}%"
-        )
-
-    if metrics.confidence_count:
-
-        avg = (
-            metrics.confidence_sum
-            / metrics.confidence_count
-        )
-
-        print(
-            f"Average Confidence : {avg:.3f}"
-        )
-
-    print()
-
-    print("Task Types")
-
-    for name, count in sorted(
-        metrics.task_type_usage.items()
-    ):
-
-        print(
-            f"  {name:<20}{count}"
-        )
-
-    print()
-
-    print("Local Solvers")
-
-    for name, count in sorted(
-        metrics.local_solver_usage.items()
-    ):
-
-        print(
-            f"  {name:<20}{count}"
-        )
-
-    print()
-
-    print("Fireworks Models")
-
-    for name, count in sorted(
-        metrics.model_usage.items()
-    ):
-
-        print(
-            f"  {name:<30}{count}"
-        )
-
-    print("=" * 60)
-
-========================================================================================================================
-
-FILE: evaluation\runner.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: inference\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: inference\client.py
+FILE: inference/client.py
 
 ========================================================================================================================
 
@@ -3531,51 +541,7 @@ class FireworksClient:
 
 ========================================================================================================================
 
-FILE: inference\factory.py
-
-========================================================================================================================
-
-"""
-Inference provider factory.
-"""
-
-from config import Config
-from constants.provider import ProviderType
-
-from inference.fireworks import FireworksProvider
-from inference.mock import MockProvider
-from inference.provider import InferenceProvider
-from inference.client import FireworksClient
-from local.provider import LocalProvider
-
-class ProviderFactory:
-
-    @staticmethod
-    def create(
-        config: Config,
-    ) -> InferenceProvider:
-
-        if config.provider is ProviderType.MOCK:
-            return MockProvider()
-        if config.provider is ProviderType.LOCAL:
-
-            return LocalProvider()
-
-        if config.provider is ProviderType.FIREWORKS:
-            # return FireworksProvider(config)
-            client = FireworksClient(
-                api_key=config.fireworks_api_key or "",
-                base_url=config.fireworks_base_url or "",
-            )
-            return FireworksProvider(client)
-
-        raise ValueError(
-            f"Unsupported provider: {config.provider}"
-        )
-
-========================================================================================================================
-
-FILE: inference\fireworks.py
+FILE: inference/fireworks.py
 
 ========================================================================================================================
 
@@ -3613,230 +579,184 @@ class FireworksProvider(InferenceProvider):
 
 ========================================================================================================================
 
-FILE: inference\mock.py
+FILE: local/client.py
 
 ========================================================================================================================
 
 """
-Mock inference provider.
+Local GGUF inference using llama.cpp.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from llama_cpp import Llama
+
+
+class LocalClient:
+
+    _model = None
+
+    def __init__(self):
+
+        if LocalClient._model is None:
+
+            model_path = (
+                Path(__file__).resolve().parents[1]
+                / "models"
+                / "llama3.2-3b-q4.gguf"
+            )
+
+            LocalClient._model = Llama(
+                model_path=str(model_path),
+                n_ctx=2048,
+                n_threads=2,
+                n_batch=256,
+                verbose=False,
+            )
+
+        self.model = LocalClient._model
+
+    def generate(
+        self,
+        prompt: str,
+        model: str | None = None,
+        temperature: float = 0.0,
+    ) -> str:
+
+        output = self.model(
+            prompt,
+            max_tokens=256,
+            temperature=temperature,
+            echo=False,
+        )
+
+        return output["choices"][0]["text"].strip()
+
+# """
+# HTTP client for communicating with a local Ollama server.
+# """
+
+# from __future__ import annotations
+
+# import requests
+
+
+# class OllamaClient:
+#     """
+#     Thin transport wrapper around the Ollama HTTP API.
+#     """
+
+#     def __init__(
+#         self,
+#         base_url: str = "http://localhost:11434",
+#     ) -> None:
+
+#         self.base_url = base_url.rstrip("/")
+
+#     def generate(
+#         self,
+#         prompt: str,
+#         model: str,
+#         temperature: float = 0.0,
+#     ) -> str:
+#         print("LOCAL CLIENT CALLED")
+#         response = requests.post(
+#             f"{self.base_url}/api/generate",
+#             json={
+#                 "model": model,
+#                 "prompt": prompt,
+#                 "stream": False,
+#                 "options": {
+#                     "temperature": temperature,
+#                 },
+#             },
+#             timeout=300,
+#         )
+#         # print(response.status_code)
+#         # print(response.text)
+#         response.raise_for_status()
+
+#         data = response.json()
+
+#         return data["response"].strip()
+
+========================================================================================================================
+
+FILE: local/provider.py
+
+========================================================================================================================
+
+
+"""
+Local inference provider.
 """
 
 from inference.provider import InferenceProvider
 
-
-class MockProvider(InferenceProvider):
-
-    def generate(
-        self,
-        prompt: str,
-        model: str,
-    ) -> str:
-
-        return (
-            f"[MOCK RESPONSE]\n"
-            f"Model: {model}\n"
-            f"Prompt: {prompt}"
-        )
-
-========================================================================================================================
-
-FILE: inference\provider.py
-
-========================================================================================================================
-
-"""
-Abstract inference provider.
-"""
-
-from __future__ import annotations
-
-from abc import ABC, abstractmethod
+from local.client import LocalClient
 
 
-class InferenceProvider(ABC):
-    """
-    Base class for all inference providers.
-    """
-
-    @abstractmethod
-    def generate(
-        self,
-        prompt: str,
-        model: str,
-    ) -> str:
-        """
-        Generate a response from the selected model.
-        """
-        raise NotImplementedError
-
-========================================================================================================================
-
-FILE: input\.gitkeep
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: input\sample_tasks.json
-
-========================================================================================================================
-
-[
-    {
-      "task_id": "1",
-      "prompt": "What is the capital of Australia?"
-    }
-  ]
-
-========================================================================================================================
-
-FILE: input\tasks.json
-
-========================================================================================================================
-
-[
-    {
-      "task_id": "1",
-      "prompt": "What is the capital of Australia?"
-    }
-  ]
-
-========================================================================================================================
-
-FILE: local\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: local\loader.py
-
-========================================================================================================================
-
-"""
-Loads the local GGUF model.
-"""
-
-from __future__ import annotations
-
-from functools import lru_cache
-
-# from llama_cpp import Llama
-
-
-MODEL_PATH = "models/qwen.gguf"
-
-
-@lru_cache(maxsize=1)
-def load_model() -> Llama:
-
-    return Llama(
-
-        model_path=MODEL_PATH,
-
-        n_ctx=4096,
-
-        n_threads=2,
-
-        temperature=0.0,
-
-        verbose=False,
-    )
-
-========================================================================================================================
-
-FILE: local\provider.py
-
-========================================================================================================================
-
-"""
-Local GGUF inference provider.
-"""
-
-from __future__ import annotations
-
-from local.loader import load_model
-
-
-class LocalProvider:
+class LocalProvider(InferenceProvider):
 
     def __init__(self):
 
-        self.model = load_model()
+        self.client = LocalClient()
 
     def generate(
-
         self,
-
-        *,
-
         prompt: str,
-
-        model: str,
-
+        model: str | None = None,
     ) -> str:
 
-        response = self.model.create_chat_completion(
-
-            messages=[
-
-                {
-
-                    "role": "system",
-
-                    "content":
-
-                    (
-
-                        "You are a concise AI assistant. "
-
-                        "Return only the requested answer."
-
-                    ),
-
-                },
-
-                {
-
-                    "role": "user",
-
-                    "content": prompt,
-
-                },
-
-            ],
-
-            temperature=0.0,
-
-            max_tokens=256,
-
+        return self.client.generate(
+            prompt=prompt,
         )
 
-        return response["choices"][0]["message"]["content"]
+# """
+# Local inference provider backed by Ollama.
+# """
+
+# from __future__ import annotations
+
+# from inference.provider import InferenceProvider
+
+# from local.client import OllamaClient
+
+
+# class LocalProvider(InferenceProvider):
+#     """
+#     Local inference provider using an Ollama server.
+#     """
+
+#     DEFAULT_MODEL = "llama3.2:3b"
+
+#     def __init__(self) -> None:
+#         self.client = OllamaClient()
+
+#     def generate(
+#         self,
+#         prompt: str,
+#         model: str | None = None
+#     ) -> str:
+
+#         model_name = self.DEFAULT_MODEL
+
+#         return self.client.generate(
+#             prompt=prompt,
+#             model=model_name,
+#             temperature=0.0,
+#         )
 
 ========================================================================================================================
 
-FILE: optimization\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: optimization\prompt_optimizer.py
+FILE: validation/local_validator.py
 
 ========================================================================================================================
 
 """
-Prompt optimization.
-
-Applies lightweight prompt compression and task-aware
-response constraints before remote inference.
+Validation rules for accepting a local LLM response.
 """
 
 from __future__ import annotations
@@ -3844,674 +764,85 @@ from __future__ import annotations
 import re
 
 from constants.task_type import TaskType
-from optimization.response_style import style_for
 
 
-_WHITESPACE = re.compile(r"\s+")
-
-_FILLER = (
-    "please",
-    "can you",
-    "could you",
-    "would you",
-    "kindly",
+BAD_PATTERNS = (
+    "i don't know",
+    "i do not know",
+    "not sure",
+    "unable",
+    "cannot answer",
+    "as an ai",
 )
 
 
-def optimize_prompt(
-    prompt: str,
+def accept_local(
     task_type: TaskType,
-) -> str:
+    answer: str,
+) -> bool:
 
-    prompt = _WHITESPACE.sub(
-        " ",
-        prompt.strip(),
-    )
+    if answer is None:
+        return False
 
-    lower = prompt.lower()
+    answer = answer.strip()
 
-    for phrase in _FILLER:
+    if not answer:
+        return False
 
-        if lower.startswith(phrase):
+    lower = answer.lower()
 
-            prompt = prompt[
-                len(phrase):
-            ].lstrip(" ,")
+    for pattern in BAD_PATTERNS:
+        if pattern in lower:
+            return False
 
-            break
+    # ------------------------
+    # Math
+    # ------------------------
 
-    style = style_for(task_type)
+    if task_type == TaskType.MATH:
 
-    return (
-        f"{style}\n\n"
-        f"{prompt}"
-    )
+        if re.search(r"-?\d+(\.\d+)?", answer) is None:
+            return False
 
-========================================================================================================================
+    # ------------------------
+    # Sentiment
+    # ------------------------
 
-FILE: optimization\response_style.py
+    elif task_type == TaskType.SENTIMENT:
 
-========================================================================================================================
-
-"""
-Task-aware response constraints.
-
-Used to reduce output tokens.
-"""
-
-from constants.task_type import TaskType
-
-
-STYLE = {
-
-    TaskType.FACTUAL:
-        "Answer only. Be concise. No explanation.",
-
-    TaskType.MATH:
-        "Return only the final answer.",
-
-    TaskType.SENTIMENT:
-        "Return Positive, Negative or Neutral only.",
-
-    TaskType.NER:
-        "Return entities and types only.",
-
-    TaskType.SUMMARIZATION:
-        "Summarize in exactly one sentence.",
-
-    TaskType.CODE_GENERATION:
-        "Return only code. No explanation.",
-
-    TaskType.CODE_DEBUGGING:
-        "Return only corrected code and one-line bug description.",
-
-    TaskType.LOGICAL_REASONING:
-        "Return only the final answer.",
-}
-
-
-def style_for(
-    task_type: TaskType,
-) -> str:
-
-    return STYLE.get(
-        task_type,
-        "Answer only.",
-    )
-
-========================================================================================================================
-
-FILE: prompts\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: prompts\compiler.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: README.md
-
-========================================================================================================================
-
-## Engineering Philosophy
-
-TACTIC is built around the idea that **AI routing is an optimization problem, not a model selection problem**.
-
-Rather than always selecting the most capable model, TACTIC estimates the minimum inference required to satisfy an accuracy constraint.
-
-The framework is intentionally:
-
-- Provider agnostic
-- Model agnostic
-- Token efficient
-- Docker first
-- Production oriented
-- Extensible through progressive architecture
-
-Every architectural decision is documented in:
-
-- docs/ARCHITECTURE.md
-- docs/ENGINEERING_DECISIONS.md
-
-## Development Strategy
-
-TACTIC follows an iterative development strategy:
-
-1. Build a complete runnable baseline.
-2. Integrate Fireworks inference.
-3. Add routing intelligence.
-4. Optimize token efficiency.
-
-The project prioritizes correctness and testability before optimization.
-
-
-## Domain Model
-
-TACTIC communicates internally using typed domain objects instead of raw dictionaries.
-
-Current domain objects:
-
-- Task
-- TaskContext
-- TaskResult
-
-This improves readability, maintainability and testability throughout the processing pipeline.
-
-## Current Status
-
-Version 1 implements the complete execution pipeline:
-
-Input → Pipeline → Router → Provider → Output
-
-Routing is intentionally simplistic at this stage and will be enhanced incrementally.
-
-## Capability-Based Routing
-
-TACTIC separates model identities from routing decisions.
-
-Models are represented by capability profiles (e.g., code generation, reasoning, general-purpose), allowing routing policies to operate on abstract capabilities rather than specific model names.
-
-## Zero-Token Task Classification
-
-TACTIC performs deterministic task classification locally before any routing decision.
-
-This enables capability-aware routing without consuming inference tokens.
-
-## Local Symbolic Execution
-
-Before invoking any external model, TACTIC attempts to solve supported task categories using lightweight deterministic methods.
-
-Only tasks that cannot be solved confidently proceed to the routing stage, minimizing external token usage.
-
-## Development Roadmap
-
-TACTIC is developed iteratively:
-
-1. Build a complete, valid submission.
-2. Establish a baseline score.
-3. Optimize routing and local execution.
-4. Benchmark every improvement against the baseline.
-
-This ensures every optimization is measurable and grounded in real evaluation results.
-
-## Baseline Submission
-
-Version 1 prioritizes a valid end-to-end submission.
-
-The initial implementation establishes a measurable baseline before introducing local symbolic execution and advanced routing optimizations.
-
-## Development Workflow
-
-Every milestone follows this sequence:
-
-1. Local execution
-2. Runtime validation
-3. Docker validation
-4. Submission
-
-This isolates packaging issues from application issues and shortens the debug cycle.
-
-
-## Validation Strategy
-
-Before containerization, TACTIC is validated through local execution using the mock provider followed by the Fireworks provider. Docker packaging is performed only after the application executes successfully in a local environment.
-
-## Local Development vs Hackathon Runtime
-
-During local development, `ALLOWED_MODELS` may need to contain fully qualified Fireworks model paths (for example, `accounts/fireworks/models/gemma-4-31b-it`) depending on your Fireworks account.
-
-During hackathon evaluation, the container must use the `ALLOWED_MODELS` environment variable injected by the judging harness without modification.
-
-## Local Development Models
-
-The models available through a personal Fireworks account may differ from the models exposed by the hackathon evaluation environment.
-
-Use locally available Serverless models for development. During evaluation, always rely on the injected `ALLOWED_MODELS` environment variable.
-
-### Milestone
-
-✅ End-to-end Fireworks inference validated.
-
-The application has successfully executed the complete processing pipeline using the Fireworks OpenAI-compatible API and produced a valid `results.json` output.
-
-### Prompt Optimization
-
-Before every Fireworks API call, prompts pass through a lightweight optimization layer that:
-
-- Normalizes whitespace
-- Removes redundant polite phrases
-- Applies task-specific response constraints
-- Reduces estimated token usage
-
-This optimization is deterministic and incurs no additional inference cost.
-
-### Decision Logging
-
-Every processed task produces a structured JSONL record in `output/decisions.jsonl` containing:
-
-- Task type
-- Routing decision
-- Local solver used
-- Confidence
-- Selected Fireworks model
-- Prompt length
-- Response length
-
-This log is used to benchmark routing quality and guide token optimization experiments.
-
-========================================================================================================================
-
-FILE: requirements.txt
-
-========================================================================================================================
-
-openai>=1.50,<2.0
-
-python-dotenv>=1.0,<2.0
-
-
-========================================================================================================================
-
-FILE: routing\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: routing\registry.py
-
-========================================================================================================================
-
-"""
-Model registry.
-
-Stores information about the Fireworks models currently available to the
-application.
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-
-
-@dataclass(slots=True)
-class ModelProfile:
-    """
-    Metadata describing a model.
-    """
-
-    model_id: str
-
-    enabled: bool = True
-
-    capabilities: set[str] = field(default_factory=set)
-
-
-KNOWN_MODEL_CAPABILITIES: dict[str, set[str]] = {
-
-    # General-purpose models
-    "gemma-4-31b-it": {
-        "general",
-    },
-
-    "gemma-4-31b-it-nvfp4": {
-        "general",
-    },
-
-    "gemma-4-26b-a4b-it": {
-        "general",
-    },
-
-    # Code-specialized
-    "kimi-k2p7-code": {
-        "general",
-        "code",
-        "debugging",
-    },
-
-    # Strong reasoning
-    "minimax-m3": {
-        "general",
-        "reasoning",
-    },
-}
-
-
-class ModelRegistry:
-
-    def __init__(
-        self,
-        models: list[str],
-    ) -> None:
-
-        self.models: list[ModelProfile] = []
-
-        for model in models:
-
-            profile = ModelProfile(
-                model_id=model,
-                capabilities=KNOWN_MODEL_CAPABILITIES.get(
-                    model,
-                    set(),
-                ),
-            )
-
-            self.models.append(profile)
-
-    def all(self) -> list[ModelProfile]:
-
-        return self.models
-
-    def first(self) -> str:
-
-        if not self.models:
-            raise ValueError(
-                "No allowed models configured."
-            )
-
-        return self.models[0].model_id
-
-    def by_capability(
-        self,
-        capability: str,
-    ) -> list[ModelProfile]:
-
-        return [
-
-            model
-
-            for model in self.models
-
-            if (
-                model.enabled
-                and capability in model.capabilities
-            )
-
-        ]
-
-========================================================================================================================
-
-FILE: routing\router.py
-
-========================================================================================================================
-
-"""
-Simple routing policy.
-
-Version 1 simply selects the first available model.
-"""
-
-from config import Config
-
-from routing.registry import ModelRegistry
-from schemas.context import TaskContext
-from constants.task_type import TaskType
-
-class Router:
-
-    def __init__(
-        self,
-        config: Config,
-    ) -> None:
-
-        self.registry = ModelRegistry(
-            config.allowed_models
+        labels = (
+            "positive",
+            "negative",
+            "neutral",
+            "mixed",
         )
 
-    def select_model(
-        self,
-        context: TaskContext,
-    ) -> str:
-        """
-        Select a model for the task.
+        if not any(label in lower for label in labels):
+            return False
 
-        Future versions will use task features and
-        capabilities to optimize routing.
-        """
+    # ------------------------
+    # Code generation
+    # ------------------------
 
-        if context.task_type is TaskType.CODE_GENERATION:
+    elif task_type == TaskType.CODE_GENERATION:
 
-            models = self.registry.by_capability(
-                "code"
-            )
+        if "def " not in answer:
+            return False
 
-            if models:
-                return models[0].model_id
+    # ------------------------
+    # Summaries
+    # ------------------------
 
+    elif task_type == TaskType.SUMMARIZATION:
 
-        if context.task_type is TaskType.CODE_DEBUGGING:
+        if len(answer.split()) > 120:
+            return False
 
-            models = self.registry.by_capability(
-                "debugging"
-            )
-
-            if models:
-                return models[0].model_id
-
-
-        if context.task_type is TaskType.LOGICAL_REASONING:
-
-            models = self.registry.by_capability(
-                "reasoning")
-            if models:
-                return models[0].model_id
-        
-        return self.registry.first()
+    return True
 
 ========================================================================================================================
 
-FILE: schemas\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: schemas\context.py
-
-========================================================================================================================
-
-"""
-Shared processing context.
-
-This object moves through the entire processing pipeline.
-"""
-
-from dataclasses import dataclass, field
-from typing import Any
-
-from schemas.task import Task
-from constants.task_type import TaskType
-
-
-@dataclass(slots=True)
-class TaskContext:
-    """
-    Processing context for a single task.
-    """
-
-    task: Task
-
-    task_type: TaskType = TaskType.UNKNOWN
-
-    canonical_prompt: str | None = None
-
-    selected_model: str | None = None
-
-    answer: Any = None
-
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    features: dict[str, Any] = field(default_factory=dict)
-
-    local_answer: Any = None
-
-    confidence: float = 0.0
-
-    local_solver: str | None = None
-
-    solved_locally: bool = False
-
-========================================================================================================================
-
-FILE: schemas\result.py
-
-========================================================================================================================
-
-"""
-Domain model representing the output for one task.
-"""
-
-from dataclasses import dataclass
-from typing import Any
-
-
-@dataclass(slots=True)
-class TaskResult:
-    """
-    Represents the answer generated for a task.
-    """
-
-    task_id: str
-    answer: Any
-
-========================================================================================================================
-
-FILE: schemas\task.py
-
-========================================================================================================================
-
-"""
-Domain model representing an input task.
-"""
-
-from dataclasses import dataclass
-
-
-@dataclass(slots=True)
-class Task:
-    """
-    Represents one evaluation task.
-    """
-
-    task_id: str
-    prompt: str
-
-========================================================================================================================
-
-FILE: scripts\build.ps1
-
-========================================================================================================================
-
-docker buildx build --platform linux/amd64 -t token-intelligence-engine:v0.1 .
-
-========================================================================================================================
-
-FILE: scripts\run_fireworks.ps1
-
-========================================================================================================================
-
-docker run --rm `
-    -v "${PWD}\input:/input" `
-    -v "${PWD}\output:/output" `
-    -e PROVIDER=fireworks `
-    -e FIREWORKS_API_KEY=$env:FIREWORKS_API_KEY `
-    -e FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1 `
-    -e ALLOWED_MODELS=accounts/fireworks/models/minimax-m3 `
-    token-intelligence-engine:v0.1
-
-========================================================================================================================
-
-FILE: scripts\run_mock.ps1
-
-========================================================================================================================
-
-docker run --rm `
-    -v "${PWD}\input:/input" `
-    -v "${PWD}\output:/output" `
-    -e PROVIDER=mock `
-    -e ALLOWED_MODELS=mock-model `
-    token-intelligence-engine:v0.1
-
-========================================================================================================================
-
-FILE: scripts\test_local.py
-
-========================================================================================================================
-
-from pathlib import Path
-
-from ctransformers import AutoModelForCausalLM
-
-MODEL_PATH = Path("models")
-
-MODEL_FILE = "qwen.gguf"
-
-print("Loading model...")
-
-llm = AutoModelForCausalLM.from_pretrained(
-    str(MODEL_PATH),
-    model_file=MODEL_FILE,
-    model_type="qwen2",
-)
-
-print("Model loaded.")
-
-prompt = "What is the capital of Australia?"
-
-print(f"\nPrompt: {prompt}\n")
-
-response = llm(
-    prompt,
-    max_new_tokens=64,
-    temperature=0.0,
-)
-
-print("Response:\n")
-print(response)
-
-========================================================================================================================
-
-FILE: scripts\test_local_llm.py
-
-========================================================================================================================
-
-from local.provider import LocalProvider
-
-provider = LocalProvider()
-
-answer = provider.generate(
-
-    prompt="What is the capital of Australia?",
-
-    model="local",
-
-)
-
-print(answer)
-
-========================================================================================================================
-
-FILE: telemetry\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: telemetry\decision_logger.py
+FILE: telemetry/decision_logger.py
 
 ========================================================================================================================
 
@@ -4582,158 +913,3 @@ def log_decision(
         )
 
         file.write("\n")
-
-========================================================================================================================
-
-FILE: tests\test_classifier.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: tests\test_pipeline.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: tests\test_router.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: utils\helpers.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: utils\logger.py
-
-========================================================================================================================
-
-"""
-Logging utilities.
-
-Provides a single place to configure application logging.
-"""
-
-from __future__ import annotations
-
-import logging
-
-
-def configure_logging(log_level: str = "INFO") -> None:
-    """
-    Configure application-wide logging.
-
-    Parameters
-    ----------
-    log_level:
-        Logging level (INFO, DEBUG, WARNING, ERROR).
-    """
-
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper(), logging.INFO),
-        format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        force=True,
-    )
-
-========================================================================================================================
-
-FILE: validation\__init__.py
-
-========================================================================================================================
-
-
-
-========================================================================================================================
-
-FILE: validation\startup.py
-
-========================================================================================================================
-
-"""
-Application startup validation.
-"""
-
-from pathlib import Path
-
-from config import Config
-from constants.provider import ProviderType
-
-
-def validate_startup(config: Config) -> None:
-    """
-    Validate runtime configuration before processing tasks.
-    """
-
-    input_path = Path(config.input_path)
-
-    if not input_path.exists():
-        raise RuntimeError(
-            f"Input file does not exist: {input_path}"
-        )
-
-    output_dir = Path(config.output_path).parent
-
-    output_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    if not config.allowed_models:
-        raise RuntimeError(
-            "No allowed models configured."
-        )
-
-    if config.provider is ProviderType.FIREWORKS:
-
-        if not config.fireworks_api_key:
-            raise RuntimeError(
-                "FIREWORKS_API_KEY is missing."
-            )
-
-        if not config.fireworks_base_url:
-            raise RuntimeError(
-                "FIREWORKS_BASE_URL is missing."
-            )
-
-========================================================================================================================
-
-FILE: validation\verifier.py
-
-========================================================================================================================
-
-"""
-Response verification.
-
-Version 1 performs only minimal validation.
-"""
-
-from schemas.context import TaskContext
-
-
-def verify(
-    context: TaskContext,
-) -> bool:
-    """
-    Verify the generated response.
-
-    Returns
-    -------
-    bool
-        True if the response is considered valid.
-    """
-
-    return context.answer is not None
