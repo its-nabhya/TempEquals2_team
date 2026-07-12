@@ -19,13 +19,27 @@ def log_decision(
     context: TaskContext,
 ) -> None:
 
+    prompt = (
+        context.canonical_prompt
+        or context.task.prompt
+        or ""
+    )
+
+    answer = (
+        context.answer
+        or context.local_answer
+        or ""
+    )
+
     record = {
 
         "task_id":
             context.task.task_id,
 
         "task_type":
-            context.task_type.name,
+            context.task_type.name
+            if context.task_type
+            else "UNKNOWN",
 
         "solver":
             context.local_solver,
@@ -40,14 +54,10 @@ def log_decision(
             context.selected_model,
 
         "prompt_chars":
-            len(context.canonical_prompt),
+            len(prompt),
 
         "answer_chars":
-            len(str(
-                context.answer
-                or context.local_answer
-                or ""
-            )),
+            len(str(answer)),
     }
 
     LOG_PATH.parent.mkdir(

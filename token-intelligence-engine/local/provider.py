@@ -1,27 +1,48 @@
-
 """
-Local inference provider.
+Local LLM inference provider.
 """
 
 from inference.provider import InferenceProvider
-
 from local.client import LocalClient
-
 
 class LocalProvider(InferenceProvider):
 
     def __init__(self):
-
         self.client = LocalClient()
 
     def generate(
         self,
         prompt: str,
+        model: str | None = None,
     ) -> str:
 
         return self.client.generate(
             prompt=prompt,
         )
+
+# """
+# Local inference provider.
+# """
+
+# from inference.provider import InferenceProvider
+
+# from local.client import LocalClient
+
+
+# class LocalProvider(InferenceProvider):
+
+#     def __init__(self):
+
+#         self.client = LocalClient()
+
+#     def generate(
+#         self,
+#         prompt: str,
+#     ) -> str:
+
+#         return self.client.generate(
+#             prompt=prompt,
+#         )
 
 # """
 # Local inference provider backed by Ollama.

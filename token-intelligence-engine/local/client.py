@@ -27,7 +27,7 @@ class LocalClient:
                 model_path=str(model_path),
                 n_ctx=2048,
                 n_threads=2,
-                n_batch=256,
+                n_batch=128,
                 verbose=False,
             )
 

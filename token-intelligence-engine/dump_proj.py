@@ -1,3 +1,68 @@
+from pathlib import Path
+import os
+
+ROOT = Path(".").resolve()
+OUTPUT_FILE = ROOT / "project_dump_targeted.txt"
+
+# -------------------------------
+# Specific files requested by the AI
+# -------------------------------
+TARGET_FILES = [
+    "token-intelligence-engine/app.py",
+    "token-intelligence-engine/core/pipeline.py",
+    "token-intelligence-engine/analysis/local_engine.py",
+    "token-intelligence-engine/test_ctransformers.py",
+    "token-intelligence-engine/config.py",
+    "token-intelligence-engine/constants/task_type.py",
+    "token-intelligence-engine/inference/client.py",
+    "token-intelligence-engine/inference/factory.py"
+]
+
+def write_separator(f):
+    f.write("\n")
+    f.write("=" * 120)
+    f.write("\n\n")
+
+with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
+
+    out.write("# TARGETED PROJECT DUMP\n")
+    out.write(f"# Root: {ROOT}\n\n")
+
+    for file_path in TARGET_FILES:
+        target_path = ROOT / file_path
+        
+        print(f"Processing: {file_path}")
+
+        write_separator(out)
+        out.write(f"FILE: {file_path}\n")
+        write_separator(out)
+
+        # Handle missing files safely
+        if not target_path.exists():
+            out.write(f"[File not found at specified path: {target_path}]\n")
+            continue
+            
+        if not target_path.is_file():
+            out.write("[Path exists but is not a valid file]\n")
+            continue
+
+        try:
+            text = target_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            out.write("[Binary / Non UTF-8 File]\n")
+            continue
+        except Exception as e:
+            out.write(f"[Could not read file: {e}]\n")
+            continue
+
+        out.write(text)
+
+        if not text.endswith("\n"):
+            out.write("\n")
+
+print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
+
+
 # from pathlib import Path
 # import os
 
@@ -144,62 +209,72 @@
 
 # print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
 
-from pathlib import Path
-
-ROOT = Path(".").resolve()
-OUTPUT_FILE = ROOT / "project_dump.txt"
+# -------------------------------
+# -------------------------------
 
 # -------------------------------
-# Specific files to include
 # -------------------------------
-TARGET_FILES = [
-    "config.py",
-    "core/pipeline.py",
-    "routing/router.py",
-    "inference/factory.py",
-    "inference/client.py",
-    "inference/fireworks.py",
-    "local/client.py",
-    "local/provider.py",
-    "validation/local_validator.py",
-    "telemetry/decision_logger.py",
-]
+# -------------------------------
+# -------------------------------
 
-def write_separator(f):
-    f.write("\n")
-    f.write("=" * 120)
-    f.write("\n\n")
 
-with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-    out.write("# PROJECT DUMP\n")
-    out.write(f"# Root: {ROOT}\n\n")
 
-    for relative_path in TARGET_FILES:
-        file = ROOT / relative_path
+# from pathlib import Path
 
-        # Check if the file actually exists before trying to read it
-        if not file.is_file():
-            print(f"Skipping (not found): {relative_path}")
-            continue
+# ROOT = Path(".").resolve()
+# OUTPUT_FILE = ROOT / "project_dump.txt"
 
-        print(f"Processing: {relative_path}")
+# # -------------------------------
+# # Specific files to include
+# # -------------------------------
+# TARGET_FILES = [
+#     "config.py",
+#     "core/pipeline.py",
+#     "routing/router.py",
+#     "inference/factory.py",
+#     "inference/client.py",
+#     "inference/fireworks.py",
+#     "local/client.py",
+#     "local/provider.py",
+#     "validation/local_validator.py",
+#     "telemetry/decision_logger.py",
+# ]
 
-        write_separator(out)
-        out.write(f"FILE: {relative_path}\n")
-        write_separator(out)
+# def write_separator(f):
+#     f.write("\n")
+#     f.write("=" * 120)
+#     f.write("\n\n")
 
-        try:
-            text = file.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            out.write("[Binary / Non UTF-8 File]\n")
-            continue
-        except Exception as e:
-            out.write(f"[Could not read file: {e}]\n")
-            continue
+# with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
+#     out.write("# PROJECT DUMP\n")
+#     out.write(f"# Root: {ROOT}\n\n")
 
-        out.write(text)
+#     for relative_path in TARGET_FILES:
+#         file = ROOT / relative_path
 
-        if not text.endswith("\n"):
-            out.write("\n")
+#         # Check if the file actually exists before trying to read it
+#         if not file.is_file():
+#             print(f"Skipping (not found): {relative_path}")
+#             continue
 
-print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
+#         print(f"Processing: {relative_path}")
+
+#         write_separator(out)
+#         out.write(f"FILE: {relative_path}\n")
+#         write_separator(out)
+
+#         try:
+#             text = file.read_text(encoding="utf-8")
+#         except UnicodeDecodeError:
+#             out.write("[Binary / Non UTF-8 File]\n")
+#             continue
+#         except Exception as e:
+#             out.write(f"[Could not read file: {e}]\n")
+#             continue
+
+#         out.write(text)
+
+#         if not text.endswith("\n"):
+#             out.write("\n")
+
+# print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
