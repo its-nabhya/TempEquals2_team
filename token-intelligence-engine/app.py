@@ -45,6 +45,10 @@ def main() -> int:
         # Load application configuration
         # ------------------------------------------------------------------
         config = load_config()
+        # ------------------------------------------------------------------
+        # Configure logging
+        # ------------------------------------------------------------------
+        configure_logging(config.log_level)
         
         # ------------------------------------------------------------------
         # Validate startup configuration
@@ -56,10 +60,7 @@ def main() -> int:
         logger.info("  Input Path    : %s", config.input_path)
         logger.info("  Output Path   : %s", config.output_path)
         logger.info("  Allowed Models: %s", config.allowed_models)
-        # ------------------------------------------------------------------
-        # Configure logging
-        # ------------------------------------------------------------------
-        configure_logging(config.log_level)
+
 
         logger.info("Application started.")
 

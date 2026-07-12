@@ -47,7 +47,7 @@ class Pipeline:
     ) -> list[TaskResult]:
 
         results = []
-        local_provider = LocalProvider()
+        local_provider = None
         
         symbolic_count = 0
         local_count = 0
@@ -147,21 +147,21 @@ class Pipeline:
 
             # Handle Local LLM Return
             if self.router.use_local(context):
+                if local_provider is None:
+                        try:
+                            logger.info("Initializing local LLM...")
+                            local_provider = LocalProvider()
+                        except Exception as exc:
+                            logger.exception("Failed to initialize local LLM")
+                            raise
                 logger.info("[ROUTER] %s -> LOCAL LLM", task.task_id)
                 try:
                     t_local = time.perf_counter()
-                    logger.info(
-                        "[FW ROUTE] %s -> %s",
-                        task.task_id,
-                        model,
-                    )
+                    
                     answer = local_provider.generate(
                         prompt=context.canonical_prompt,
                     )
-                    logger.info(
-                        "[FW DONE] %s",
-                        task.task_id,
-                    )
+                    
                     local_time += (time.perf_counter() - t_local)
                     
                     if accept_local(context.task_type, answer):

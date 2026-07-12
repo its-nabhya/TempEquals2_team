@@ -7,6 +7,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from llama_cpp import Llama
+import logging
+
 
 
 class LocalClient:
@@ -16,7 +18,8 @@ class LocalClient:
     def __init__(self):
 
         if LocalClient._model is None:
-
+            logger = logging.getLogger(__name__)
+            logger.info("Loading GGUF model...")
             model_path = (
                 Path(__file__).resolve().parents[1]
                 / "models"
@@ -30,6 +33,7 @@ class LocalClient:
                 n_batch=128,
                 verbose=False,
             )
+            logger.info("GGUF model loaded successfully.")
 
         self.model = LocalClient._model
 
