@@ -13,8 +13,7 @@ def optimize_prompt(
     if task_type is TaskType.FACTUAL:
 
         return (
-            "Answer the question accurately.\n"
-            "Return ONLY the answer.\n"
+            "Return ONLY the answer in ONE sentence.\n"
             "Do not explain.\n\n"
             f"{prompt}"
         )
@@ -31,8 +30,8 @@ def optimize_prompt(
     if task_type is TaskType.SENTIMENT:
 
         return (
-            "Classify the sentiment.\n"
-            "Return EXACTLY one of:\n"
+            "Classify the sentiment.\n" 
+            "Return ONLY ONE WORD FROM:.\n"
             "Positive\n"
             "Negative\n"
             "Neutral\n"
@@ -50,6 +49,7 @@ def optimize_prompt(
             '  "organization": [],\n'
             '  "location": [],\n'
             '  "date": []\n'
+            '  "event":[]\n'
             "}\n\n"
             f"{prompt}"
         )
@@ -57,7 +57,7 @@ def optimize_prompt(
     if task_type is TaskType.SUMMARIZATION:
 
         return (
-            "Summarize in ONE sentence.\n"
+            "Summarize in ONE sentence. Print ONLY Summary\n"
             "Do not explain.\n\n"
             f"{prompt}"
         )
@@ -65,7 +65,7 @@ def optimize_prompt(
     if task_type is TaskType.CODE_GENERATION:
 
         return (
-            "Return ONLY code.\n"
+            "Return ONLY code. DO NOT SHOW THINKING\n"
             "No markdown.\n"
             "No explanation.\n\n"
             f"{prompt}"
@@ -83,7 +83,7 @@ def optimize_prompt(
     if task_type is TaskType.LOGICAL_REASONING:
 
         return (
-            "Reason carefully.\n"
+            "Reason carefully. DO NOT SHOW THINKING.\n"
             "Return ONLY the final answer.\n"
             "Keep it concise.\n\n"
             f"{prompt}"

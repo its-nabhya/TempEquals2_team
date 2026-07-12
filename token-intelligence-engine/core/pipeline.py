@@ -157,6 +157,21 @@ class Pipeline:
                 logger.info("[ROUTER] %s -> LOCAL LLM", task.task_id)
                 try:
                     t_local = time.perf_counter()
+                    local_prompt = context.canonical_prompt
+
+                    if context.task_type is TaskType.FACTUAL:
+                        local_prompt = (
+                            "Answer in ONE short sentence.\n"
+                            "Do not explain.\n\n"
+                            f"{context.canonical_prompt}"
+                        )
+
+                    elif context.task_type is TaskType.SENTIMENT:
+                        local_prompt = (
+                            "Output exactly one word:\n"
+                            "Positive\nNegative\nNeutral\nMixed\n\n"
+                            f"{context.canonical_prompt}"
+                        )
                     
                     answer = local_provider.generate(
                         prompt=context.canonical_prompt,

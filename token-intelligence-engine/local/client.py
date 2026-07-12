@@ -30,7 +30,7 @@ class LocalClient:
                 model_path=str(model_path),
                 n_ctx=2048,
                 n_threads=2,
-                n_batch=128,
+                n_batch=200,
                 verbose=False,
             )
             logger.info("GGUF model loaded successfully.")
@@ -46,8 +46,14 @@ class LocalClient:
 
         output = self.model.create_completion(
             prompt=prompt,
-            max_tokens=256,
+            max_tokens=128,
             temperature=temperature,
+            stop=[
+                "\n\n",
+                "</s>",
+                "Explanation:",
+                "Reasoning:",
+            ],
         )
         return output["choices"][0]["text"].strip()
 

@@ -9,7 +9,7 @@ from config import Config
 from routing.registry import ModelRegistry
 from schemas.context import TaskContext
 from constants.task_type import TaskType
-from analysis.difficulty import estimate
+from analysis.difficulty import estimate, Difficulty
 import logging
 
 logger = logging.getLogger(__name__)
@@ -155,11 +155,31 @@ class Router:
             TaskType.NER,
         }:
             difficulty = estimate(context)
+            f = context.features
             logger.info(
                 "[ROUTER] %s difficulty=%s",
                 context.task.task_id,
                 difficulty.name,
             )
-            return difficulty.value <= 2
+            # return difficulty.value <= 2
+            # Long contexts are expensive locally.
+            if f.get("long_context"):
+                logger.info("[ROUTER] %s -> FIREWORKS (long context)", context.task.task_id)
+                return False
+
+            # Tasks expecting structured output are better handled by Fireworks.
+            if f.get("structured_output"):
+                logger.info("[ROUTER] %s -> FIREWORKS (structured output)", context.task.task_id)
+                return False
+
+            # Hard semantic tasks should avoid the Local LLM.
+            if (
+                f.get("semantic_task")
+                and difficulty == Difficulty.HARD
+            ):
+                logger.info("[ROUTER] %s -> FIREWORKS (semantic hard)", context.task.task_id)
+                return False
+
+            return difficulty == Difficulty.EASY
 
         return False

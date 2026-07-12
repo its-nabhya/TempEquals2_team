@@ -4,11 +4,13 @@ Thin wrapper around the OpenAI SDK configured for Fireworks.
 
 from __future__ import annotations
 
-import time
 import logging
+import time
+
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+
 
 class FireworksClient:
     """
@@ -26,10 +28,11 @@ class FireworksClient:
             base_url=base_url,
             timeout=25.0,
         )
+
         self._stats = {
             "prompt": 0,
             "completion": 0,
-            "calls": 0
+            "calls": 0,
         }
 
     def get_usage(self) -> dict:
@@ -41,47 +44,46 @@ class FireworksClient:
         *,
         model: str,
         prompt: str,
-        max_tokens: int = 256,
+        max_tokens: int = 200,
         temperature: float = 0.0,
     ) -> str:
-        
+
         try:
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a concise assistant. "
+                        "Return ONLY the final answer. "
+                        "Never explain your reasoning. "
+                        "Never think aloud. "
+                        "Never include intermediate steps. "
+                        "Output exactly what the user requests."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ]
+
             start = time.perf_counter()
+
             response = self.client.chat.completions.create(
                 model=model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content":
-                        (
-                            "You are a precise assistant."
-                            "Return ONLY the final answer."
-                            "Do not explain."
-
-                            "Do not think aloud."
-
-                            "Do not include reasoning."
-
-                            "If the task requests a classification, output exactly one label."
-
-                            "If the task requests a number, output only the number."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    },
-                ],
+                messages=messages,
                 temperature=temperature,
                 top_p=1,
                 max_tokens=max_tokens,
             )
-            
+
             elapsed = time.perf_counter() - start
             logger.info("[FW] %.2fs", elapsed)
-            
+
             if elapsed > 10.0:
-                logger.warning("Slow Fireworks request: %.2fs (%s)",
+                logger.warning(
+                    "Slow Fireworks request: %.2fs (%s)",
                     elapsed,
                     model,
                 )
@@ -89,9 +91,7 @@ class FireworksClient:
             if not response.choices:
                 raise RuntimeError("Fireworks returned no choices.")
 
-            content = response.choices[0].message.content
-
-            # Log token usage
+            # Usage statistics
             if response.usage:
                 u = response.usage
                 logger.info(
@@ -100,29 +100,45 @@ class FireworksClient:
                     u.completion_tokens,
                     u.total_tokens,
                 )
+
                 self._stats["prompt"] += u.prompt_tokens
                 self._stats["completion"] += u.completion_tokens
                 self._stats["calls"] += 1
 
+            message = response.choices[0].message
+            content = message.content
+
+            # Some reasoning models consume the entire budget
+            # producing reasoning_content and never emit content.
             if content is None:
 
-                logger.error("Fireworks returned empty content.")
-                logger.error("Choice: %s", response.choices[0])
+                logger.warning(
+                    "Model '%s' produced no final answer "
+                    "(finish_reason=%s). Returning empty string.",
+                    model,
+                    response.choices[0].finish_reason,
+                )
 
-                try:
-                    logger.error(
-                        "Full response:\n%s",
-                        response.model_dump_json(indent=2),
+                reasoning = getattr(
+                    message,
+                    "reasoning_content",
+                    None,
+                )
+
+                if reasoning:
+                    logger.debug(
+                        "Reasoning length: %d chars",
+                        len(reasoning),
                     )
-                except Exception:
-                    logger.error("Raw response: %s", response)
 
-                raise RuntimeError("Fireworks returned an empty response.")
+                return ""
 
             return content.strip()
-        
+
         except Exception as exc:
-            raise RuntimeError(f"Fireworks inference failed: {exc}") from exc
+            raise RuntimeError(
+                f"Fireworks inference failed: {exc}"
+            ) from exc
 
 # """
 # Thin wrapper around the OpenAI SDK configured for Fireworks.

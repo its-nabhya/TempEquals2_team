@@ -1,0 +1,753 @@
+# TARGETED PROJECT DUMP
+# Root: D:\Code\Projects\AMD_AI_Hackathon
+
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/app.py
+
+========================================================================================================================
+
+"""
+Application entry point.
+
+This module is responsible only for bootstrapping the application.
+
+Responsibilities:
+    1. Load application configuration.
+    2. Configure logging.
+    3. Read input tasks.
+    4. Construct the processing pipeline.
+    5. Execute the pipeline.
+    6. Persist output results.
+    7. Exit with the appropriate status code.
+
+Business logic should NEVER be implemented in this file.
+"""
+
+import logging
+import sys
+
+from config import load_config
+from core.io import load_tasks, save_results
+from core.pipeline import Pipeline
+from inference.factory import ProviderFactory
+from routing.router import Router
+from utils.logger import configure_logging
+from validation.startup import validate_startup
+
+logger = logging.getLogger(__name__)
+
+
+def main() -> int:
+    """
+    Application entry point.
+
+    Returns
+    -------
+    int
+        0 on successful execution.
+        Non-zero on failure.
+    """
+
+    try:
+        # ------------------------------------------------------------------
+        # Load application configuration
+        # ------------------------------------------------------------------
+        config = load_config()
+        
+        # ------------------------------------------------------------------
+        # Validate startup configuration
+        # ------------------------------------------------------------------
+        validate_startup(config)
+
+        logger.info("Configuration:")
+        logger.info("  Provider      : %s", config.provider)
+        logger.info("  Input Path    : %s", config.input_path)
+        logger.info("  Output Path   : %s", config.output_path)
+        logger.info("  Allowed Models: %s", config.allowed_models)
+        # ------------------------------------------------------------------
+        # Configure logging
+        # ------------------------------------------------------------------
+        configure_logging(config.log_level)
+
+        logger.info("Application started.")
+
+        # ------------------------------------------------------------------
+        # Load input tasks
+        # ------------------------------------------------------------------
+        tasks = load_tasks(config.input_path)
+
+        logger.info("Loaded %d task(s).", len(tasks))
+
+        # ------------------------------------------------------------------
+        # Build core components
+        # ------------------------------------------------------------------
+        router = Router(config)
+
+        provider = ProviderFactory.create(config)
+
+        pipeline = Pipeline(
+            router=router,
+            provider=provider,
+        )
+
+        # ------------------------------------------------------------------
+        # Execute processing pipeline
+        # ------------------------------------------------------------------
+        results = pipeline.run(tasks)
+
+        # ------------------------------------------------------------------
+        # Persist results
+        # ------------------------------------------------------------------
+        save_results(results, config.output_path)
+
+        logger.info("Successfully processed all tasks.")
+
+        return 0
+
+    except Exception:
+        logger.exception("Fatal application error.")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/core/pipeline.py
+
+========================================================================================================================
+
+"""
+Processing pipeline.
+"""
+
+import logging
+from schemas.context import TaskContext
+from schemas.result import TaskResult
+from schemas.task import Task
+
+from inference.provider import InferenceProvider
+from routing.router import Router
+
+from analysis.classifier import classify
+from analysis.features import extract_features
+from analysis.canonicalizer import canonicalize
+from validation.verifier import verify
+from analysis.local_engine import solve
+
+from optimization.prompt_optimizer import optimize_prompt
+from telemetry.decision_logger import log_decision
+# from analysis.difficulty import estimate, Difficulty
+from validation.local_validator import accept_local
+from local.provider import LocalProvider
+# from constants.task_type import TaskType
+
+
+logger = logging.getLogger(__name__)
+class Pipeline:
+
+    def __init__(
+        self,
+        *,
+        router: Router,
+        provider: InferenceProvider,
+    ) -> None:
+
+        self.router = router
+        self.provider = provider
+
+    def run(
+        self,
+        tasks: list[Task],
+        observer=None,
+    ) -> list[TaskResult]:
+
+        results = []
+        local_provider = LocalProvider()
+        for task in tasks:
+
+            context = TaskContext(task)
+
+            extract_features(context)
+            classify(context)
+            canonicalize(context)
+            context.canonical_prompt = optimize_prompt(
+                context.canonical_prompt,
+                context.task_type,
+            )
+
+            solve(context)  
+            # print("Solved locally?", context.solved_locally)
+            # print("Task type:", context.task_type)
+
+            if context.solved_locally:
+
+                result = TaskResult(
+                    task_id=context.task.task_id,
+                    answer=context.local_answer,
+                )
+
+                if observer is not None:
+                    observer(context, result)
+                log_decision(context)
+                results.append(result)
+                continue
+            #
+            # # -----------------------------
+            # # Local LLM fallback
+            # # -----------------------------
+
+            # try:
+
+            #     # from local.provider import LocalProvider
+
+            #     # local_provider = LocalProvider()
+
+            #     answer = local_provider.generate(
+            #         prompt=context.canonical_prompt,
+            #     )
+
+            #     if answer:
+
+            #         context.local_answer = answer
+            #         context.local_solver = "ollama"
+            #         context.confidence = 0.80
+            #         context.solved_locally = True
+
+            #         result = TaskResult(
+            #             task_id=context.task.task_id,
+            #             answer=answer,
+            #         )
+
+            #         if observer is not None:
+            #             observer(context, result)
+
+            #         log_decision(context)
+
+            #         results.append(result)
+
+            #         continue
+
+            # except Exception as exc:
+
+            #     logger.warning(
+            #         "Local inference failed: %s",
+            #         exc,
+            #     )
+            # difficulty = estimate(context)
+
+            # # Default
+            # use_local = False
+
+            # # Symbolic math already handled above.
+            # # Let Ollama handle these.
+
+            # if context.task_type in {
+            #     TaskType.FACTUAL,
+            #     TaskType.SUMMARIZATION,
+            #     TaskType.SENTIMENT,
+            #     TaskType.NER,
+            # }:
+            #     use_local = True
+
+            # if context.task_type in {
+            #     TaskType.LOGICAL_REASONING,
+            #     TaskType.CODE_GENERATION,
+            #     TaskType.CODE_DEBUGGING,
+            # }:
+            #     use_local = False
+
+            # if use_local:
+
+            #     try:
+            #         print("CALLING LOCAL LLM")
+            #         answer = local_provider.generate(
+            #             prompt=context.canonical_prompt,
+            #         )
+
+            #         if accept_local(
+            #             context.task_type,
+            #             answer,
+            #         ):
+
+            #             context.local_answer = answer
+            #             context.local_solver = "ollama"
+            #             context.solved_locally = True
+
+            #             result = TaskResult(
+            #                 task_id=context.task.task_id,
+            #                 answer=answer,
+            #             )
+
+            #             if observer:
+            #                 observer(context, result)
+
+            #             log_decision(context)
+
+            #             results.append(result)
+
+            #             continue
+
+            #     except Exception as exc:
+
+            #         logger.warning(
+            #             "Local inference failed: %s",
+            #             exc,
+            #         )
+            # ------------------------------------------------------------------
+            # Router decides whether to use the local model
+            # ------------------------------------------------------------------
+
+            if self.router.use_local(context):
+
+                try:
+
+                    answer = local_provider.generate(
+                        prompt=context.canonical_prompt,
+                    )
+
+                    if accept_local(
+                        context.task_type,
+                        answer,
+                    ):
+
+                        context.local_answer = answer
+                        context.local_solver = "llama_cpp"
+                        context.solved_locally = True
+
+                        result = TaskResult(
+                            task_id=context.task.task_id,
+                            answer=answer,
+                        )
+
+                        if observer is not None:
+                            observer(context, result)
+
+                        log_decision(context)
+
+                        results.append(result)
+
+                        continue
+
+                except Exception as exc:
+
+                    logger.warning(
+                        "Local inference failed: %s",
+                        exc,
+                    )
+
+            model = self.router.select_model(
+                context
+            )
+
+            logger.info(
+                "Task %s classified as %s",
+                task.task_id,
+                context.task_type.name,
+            )
+
+            logger.info(
+                "Selected model: %s",
+                model,
+            )
+
+            context.selected_model = model
+            # print("CALLING FIREWORKS")
+            answer = self.provider.generate(
+                prompt=context.canonical_prompt,
+                model=model,
+            )
+
+            context.answer = answer
+            log_decision(context)
+
+            if not verify(context):
+                raise RuntimeError(
+                    f"Verification failed for {task.task_id}"
+                )
+
+            result = TaskResult(
+                task_id=task.task_id,
+                answer=answer,
+            )
+
+            if observer is not None:
+                observer(context, result)
+
+            results.append(result)
+
+        return results
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/analysis/local_engine.py
+
+========================================================================================================================
+
+"""
+Local symbolic inference engine.
+"""
+
+from constants.task_type import TaskType
+from schemas.context import TaskContext
+
+from analysis.solvers.math_solver import solve_math
+from analysis.solvers.sentiment_solver import solve_sentiment
+from analysis.solvers.ner_solver import solve_ner
+
+def solve(
+    context: TaskContext,
+) -> None:
+
+    if context.task_type is TaskType.MATH:
+        # print("Trying symbolic:", context.task_type)
+
+        answer, confidence = solve_math(
+            context.task.prompt
+        )
+
+        if confidence >= 0.99:
+
+            context.local_answer = answer
+            context.confidence = confidence
+            context.local_solver = "math"
+            context.solved_locally = True
+        # print("Solved symbolically")
+        return
+
+    if context.task_type is TaskType.SENTIMENT:
+
+        answer, confidence = solve_sentiment(
+            context.task.prompt
+        )
+
+        if confidence >= 0.90:
+
+            context.local_answer = answer
+            context.confidence = confidence
+            context.local_solver = "sentiment"
+            context.solved_locally = True
+    
+    # if context.task_type is TaskType.NER:
+
+    #     answer, confidence = solve_ner(
+    #         context.task.prompt
+    #     )
+
+    #     if confidence >= 0.95:
+
+    #         context.local_answer = answer
+    #         context.confidence = confidence
+    #         context.local_solver = "ner"
+    #         context.solved_locally = True
+
+    #     return
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/test_ctransformers.py
+
+========================================================================================================================
+
+
+from ctransformers import AutoModelForCausalLM
+model = AutoModelForCausalLM.from_pretrained(
+    "models",
+    model_file="qwen.gguf"
+)
+print("loaded")
+print(model("What is 2+2?"))
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/config.py
+
+========================================================================================================================
+
+"""
+Application configuration.
+
+This module is responsible for loading runtime configuration from
+environment variables and constructing a strongly typed Config object.
+"""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+
+from constants.provider import ProviderType
+from dotenv import load_dotenv
+
+load_dotenv()
+
+@dataclass(slots=True)
+class Config:
+    """
+    Central application configuration.
+
+    Every configurable value used throughout the application should
+    originate from this object.
+    """
+
+    # ------------------------------------------------------------------
+    # Logging
+    # ------------------------------------------------------------------
+
+    log_level: str = "INFO"
+
+    # ------------------------------------------------------------------
+    # Input / Output
+    # ------------------------------------------------------------------
+
+    input_path: str = "/input/tasks.json"
+    output_path: str = "/output/results.json"
+
+    # ------------------------------------------------------------------
+    # Inference
+    # ------------------------------------------------------------------
+
+    provider: ProviderType = ProviderType.LOCAL
+
+    fireworks_api_key: str | None = None
+
+    fireworks_base_url: str | None = None
+
+    allowed_models: list[str] = field(default_factory=list)
+
+    # ------------------------------------------------------------------
+    # Runtime
+    # ------------------------------------------------------------------
+
+    request_timeout: int = 30
+
+
+def load_config() -> Config:
+    """
+    Load application configuration.
+
+    Environment variables override default values.
+
+    Returns
+    -------
+    Config
+        Populated application configuration.
+    """
+
+    return Config(
+        log_level=os.getenv("LOG_LEVEL", "INFO"),
+
+        input_path=os.getenv(
+            "INPUT_PATH",
+            "/input/tasks.json",
+        ),
+
+        output_path=os.getenv(
+            "OUTPUT_PATH",
+            "/output/results.json",
+        ),
+
+        provider=ProviderType(
+            os.getenv(
+                "PROVIDER",
+                ProviderType.FIREWORKS.value,
+            )
+        ),
+
+        fireworks_api_key=os.getenv(
+            "FIREWORKS_API_KEY"
+        ),
+
+        fireworks_base_url=os.getenv(
+            "FIREWORKS_BASE_URL"
+        ),
+
+        allowed_models=[
+            model.strip()
+            for model in os.getenv(
+                "ALLOWED_MODELS",
+                "",
+            ).split(",")
+            if model.strip()
+        ],
+
+        request_timeout=int(
+            os.getenv(
+                "REQUEST_TIMEOUT",
+                "30",
+            )
+        ),
+    )
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/constants/task_type.py
+
+========================================================================================================================
+
+"""
+Task type definitions.
+"""
+
+from enum import StrEnum
+
+
+class TaskType(StrEnum):
+    """
+    Supported task categories.
+    """
+
+    FACTUAL = "factual"
+
+    MATH = "math"
+
+    SENTIMENT = "sentiment"
+
+    SUMMARIZATION = "summarization"
+
+    NER = "ner"
+
+    CODE_DEBUGGING = "code_debugging"
+
+    CODE_GENERATION = "code_generation"
+
+    LOGICAL_REASONING = "logical_reasoning"
+
+    UNKNOWN = "unknown"
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/inference/client.py
+
+========================================================================================================================
+
+"""
+Thin wrapper around the OpenAI SDK configured for Fireworks.
+"""
+
+from __future__ import annotations
+
+from openai import OpenAI
+
+
+class FireworksClient:
+    """
+    Wrapper around the Fireworks OpenAI-compatible API.
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+    ) -> None:
+
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=25.0,
+        )
+
+    def generate(
+        self,
+        *,
+        model: str,
+        prompt: str,
+) -> str:
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content":
+                        (
+                            "You are a concise assistant. "
+                            "Follow the user's formatting instructions exactly. "
+                            "Do not add explanations unless explicitly requested."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0,
+                top_p=1,
+                max_tokens=128,
+            )
+
+            if not response.choices:
+                raise RuntimeError(
+                    "Fireworks returned no choices."
+                )
+
+            content = response.choices[0].message.content
+
+            if content is None:
+                raise RuntimeError(
+                    "Fireworks returned an empty response."
+                )
+
+            return content
+
+        except Exception as exc:
+            raise RuntimeError(
+                f"Fireworks inference failed: {exc}"
+            ) from exc
+
+
+        return response.choices[0].message.content or ""
+
+========================================================================================================================
+
+FILE: token-intelligence-engine/inference/factory.py
+
+========================================================================================================================
+
+"""
+Inference provider factory.
+"""
+
+from config import Config
+from constants.provider import ProviderType
+
+from inference.fireworks import FireworksProvider
+from inference.mock import MockProvider
+from inference.provider import InferenceProvider
+from inference.client import FireworksClient
+from local.provider import LocalProvider
+
+class ProviderFactory:
+
+    @staticmethod
+    def create(
+        config: Config,
+    ) -> InferenceProvider:
+        print("=" * 60)
+        print("PROVIDER =", config.provider)
+        print("=" * 60)
+
+        if config.provider is ProviderType.MOCK:
+            # print("CREATING MOCK PROVIDER")
+            return MockProvider()
+        if config.provider is ProviderType.LOCAL:
+            # print("CREATING LOCAL PROVIDER")
+
+            return LocalProvider()
+
+        if config.provider is ProviderType.FIREWORKS:
+            # print("CREATING FIREWORKS PROVIDER")
+            # return FireworksProvider(config)
+            client = FireworksClient(
+                api_key=config.fireworks_api_key or "",
+                base_url=config.fireworks_base_url or "",
+            )
+            return FireworksProvider(client)
+
+        raise ValueError(
+            f"Unsupported provider: {config.provider}"
+        )
