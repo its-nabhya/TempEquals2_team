@@ -156,6 +156,26 @@ class Router:
         }:
             difficulty = estimate(context)
             f = context.features
+            if context.task_type is TaskType.LOGICAL_REASONING:
+
+                model = self._find("minimax")
+
+                if model:
+                    return model
+
+                model = self._find("kimi")
+
+                if model:
+                    return model
+            if (
+                context.task_type is TaskType.LOGICAL_REASONING
+                and f.get("long_context")
+            ):
+                logger.info(
+                    "[ROUTER] %s -> FIREWORKS (long reasoning)",
+                    context.task.task_id,
+                )
+                return False
             logger.info(
                 "[ROUTER] %s difficulty=%s",
                 context.task.task_id,
@@ -173,13 +193,27 @@ class Router:
                 return False
 
             # Hard semantic tasks should avoid the Local LLM.
+            # Hard semantic tasks -> Fireworks
             if (
                 f.get("semantic_task")
                 and difficulty == Difficulty.HARD
             ):
-                logger.info("[ROUTER] %s -> FIREWORKS (semantic hard)", context.task.task_id)
+                logger.info(
+                    "[ROUTER] %s -> FIREWORKS (semantic hard)",
+                    context.task.task_id,
+                )
                 return False
 
-            return difficulty == Difficulty.EASY
+            # Medium summaries are okay locally.
+            if (
+                context.task_type is TaskType.SUMMARIZATION
+                and difficulty == Difficulty.MEDIUM
+            ):
+                logger.info(
+                    "[ROUTER] %s -> LOCAL (summary medium)",
+                    context.task.task_id,
+                )
+                return True
 
-        return False
+            # Easy factual / sentiment / NER
+            return difficulty == Difficulty.EASY

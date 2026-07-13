@@ -25,6 +25,8 @@ from constants.task_type import TaskType
 from analysis.fast_router import (
     is_math,
     is_sentiment,
+    is_summary,
+    is_ner,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,23 +69,32 @@ class Pipeline:
             # Fast deterministic routing
             # -------------------------
             t_fast = time.perf_counter()
+            # -------------------------
+            # Fast deterministic routing
+            # -------------------------
             fast_routed = False
-            
-            if is_math(context.task.prompt):
-                logger.info("[FAST] %s -> MATH", task.task_id)
-                context.task_type = TaskType.MATH
+
+            prompt = context.task.prompt
+
+            if is_ner(prompt):
+                logger.info("[FAST] %s -> NER", task.task_id)
+                context.task_type = TaskType.NER
                 fast_routed = True
-            elif is_sentiment(context.task.prompt):
+
+            elif is_sentiment(prompt):
                 logger.info("[FAST] %s -> SENTIMENT", task.task_id)
                 context.task_type = TaskType.SENTIMENT
                 fast_routed = True
-                
-            if fast_routed:
-                t_solve = time.perf_counter()
-                solve(context)
-                solve_elapsed = time.perf_counter() - t_solve
-                logger.debug("[%s] solve (fast) %.3fs", task.task_id, solve_elapsed)
-                symbolic_time += solve_elapsed
+
+            elif is_summary(prompt):
+                logger.info("[FAST] %s -> SUMMARY", task.task_id)
+                context.task_type = TaskType.SUMMARIZATION
+                fast_routed = True
+
+            elif is_math(prompt):
+                logger.info("[FAST] %s -> MATH", task.task_id)
+                context.task_type = TaskType.MATH
+                fast_routed = True
             else:
                 # -------------------------
                 # Full analysis pipeline
@@ -98,11 +109,19 @@ class Pipeline:
                 
                 logger.info("[CLASSIFY] %s -> %s", task.task_id, context.task_type.name)
                 
-                t_solve = time.perf_counter()
-                solve(context)
-                solve_elapsed = time.perf_counter() - t_solve
-                logger.debug("[%s] solve %.3fs", task.task_id, solve_elapsed)
-                symbolic_time += solve_elapsed
+                # t_solve = time.perf_counter()
+                # solve(context)
+                # solve_elapsed = time.perf_counter() - t_solve
+                # logger.debug("[%s] solve %.3fs", task.task_id, solve_elapsed)
+                # symbolic_time += solve_elapsed
+                if context.task_type is TaskType.MATH:
+                    t_solve = time.perf_counter()
+
+                    solve(context)
+
+                    solve_elapsed = time.perf_counter() - t_solve
+                    logger.debug("[%s] solve (fast) %.3fs", task.task_id, solve_elapsed)
+                    symbolic_time += solve_elapsed
 
             # Handle Symbolic Return
             if context.solved_locally:

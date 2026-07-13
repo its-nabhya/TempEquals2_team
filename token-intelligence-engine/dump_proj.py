@@ -1,203 +1,56 @@
-from pathlib import Path
-import os
-
-ROOT = Path(".").resolve()
-OUTPUT_FILE = ROOT / "project_dump_targeted.txt"
-
-# -------------------------------
-# Specific files requested by the AI
-# -------------------------------
-TARGET_FILES = [
-    "token-intelligence-engine/app.py",
-    "token-intelligence-engine/core/pipeline.py",
-    "token-intelligence-engine/analysis/local_engine.py",
-    "token-intelligence-engine/test_ctransformers.py",
-    "token-intelligence-engine/config.py",
-    "token-intelligence-engine/constants/task_type.py",
-    "token-intelligence-engine/inference/client.py",
-    "token-intelligence-engine/inference/factory.py"
-]
-
-def write_separator(f):
-    f.write("\n")
-    f.write("=" * 120)
-    f.write("\n\n")
-
-with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-
-    out.write("# TARGETED PROJECT DUMP\n")
-    out.write(f"# Root: {ROOT}\n\n")
-
-    for file_path in TARGET_FILES:
-        target_path = ROOT / file_path
-        
-        print(f"Processing: {file_path}")
-
-        write_separator(out)
-        out.write(f"FILE: {file_path}\n")
-        write_separator(out)
-
-        # Handle missing files safely
-        if not target_path.exists():
-            out.write(f"[File not found at specified path: {target_path}]\n")
-            continue
-            
-        if not target_path.is_file():
-            out.write("[Path exists but is not a valid file]\n")
-            continue
-
-        try:
-            text = target_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            out.write("[Binary / Non UTF-8 File]\n")
-            continue
-        except Exception as e:
-            out.write(f"[Could not read file: {e}]\n")
-            continue
-
-        out.write(text)
-
-        if not text.endswith("\n"):
-            out.write("\n")
-
-print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
-
-
 # from pathlib import Path
 # import os
 
 # ROOT = Path(".").resolve()
-# OUTPUT_FILE = ROOT / "project_dump.txt"
+# OUTPUT_FILE = ROOT / "project_dump_targeted.txt"
 
 # # -------------------------------
-# # Directories to ignore
+# # Specific files requested by the AI
 # # -------------------------------
-
-# IGNORE_DIRS = {
-#     ".git",
-#     ".venv",
-#     "venv",
-#     "__pycache__",
-#     ".pytest_cache",
-#     ".mypy_cache",
-#     ".idea",
-#     ".vscode",
-#     "node_modules",
-#     "dist",
-#     "build",
-#     ".ruff_cache",
-#     ".cache",
-#     "models",          # GGUFs
-#     "output",
-#     "evaluation/reports",
-# }
-
-# # -------------------------------
-# # File extensions to ignore
-# # -------------------------------
-
-# IGNORE_EXTENSIONS = {
-#     ".pyc",
-#     ".pyo",
-#     ".pyd",
-#     ".so",
-#     ".dll",
-#     ".exe",
-#     ".bin",
-#     ".gguf",
-#     ".png",
-#     ".jpg",
-#     ".jpeg",
-#     ".gif",
-#     ".bmp",
-#     ".ico",
-#     ".pdf",
-#     ".zip",
-#     ".tar",
-#     ".gz",
-#     ".7z",
-#     ".mp4",
-#     ".mov",
-#     ".avi",
-#     ".wav",
-#     ".mp3",
-#     ".csv",
-#     ".sqlite",
-#     ".db",
-#     ".log",
-# }
-
-# # -------------------------------
-# # Specific files to ignore
-# # -------------------------------
-
-# IGNORE_FILES = {
-#     "project_dump.txt",
-#     ".DS_Store",
-# }
-
-# MAX_FILE_SIZE = 1024 * 1024  # 1 MB
-
-
-# def should_skip(path: Path):
-#     parts = set(path.parts)
-
-#     if parts & IGNORE_DIRS:
-#         return True
-
-#     if path.name in IGNORE_FILES:
-#         return True
-
-#     if path.suffix.lower() in IGNORE_EXTENSIONS:
-#         return True
-
-#     if not path.is_file():
-#         return True
-
-#     try:
-#         if path.stat().st_size > MAX_FILE_SIZE:
-#             return True
-#     except Exception:
-#         return True
-
-#     return False
-
+# TARGET_FILES = [
+#     "token-intelligence-engine/app.py",
+#     "token-intelligence-engine/core/pipeline.py",
+#     "token-intelligence-engine/analysis/local_engine.py",
+#     "token-intelligence-engine/test_ctransformers.py",
+#     "token-intelligence-engine/config.py",
+#     "token-intelligence-engine/constants/task_type.py",
+#     "token-intelligence-engine/inference/client.py",
+#     "token-intelligence-engine/inference/factory.py"
+# ]
 
 # def write_separator(f):
 #     f.write("\n")
 #     f.write("=" * 120)
 #     f.write("\n\n")
 
-
 # with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
 
-#     out.write("# PROJECT DUMP\n")
+#     out.write("# TARGETED PROJECT DUMP\n")
 #     out.write(f"# Root: {ROOT}\n\n")
 
-#     files = sorted(ROOT.rglob("*"))
+#     for file_path in TARGET_FILES:
+#         target_path = ROOT / file_path
+        
+#         print(f"Processing: {file_path}")
 
-#     for file in files:
+#         write_separator(out)
+#         out.write(f"FILE: {file_path}\n")
+#         write_separator(out)
 
-#         if should_skip(file):
+#         # Handle missing files safely
+#         if not target_path.exists():
+#             out.write(f"[File not found at specified path: {target_path}]\n")
+#             continue
+            
+#         if not target_path.is_file():
+#             out.write("[Path exists but is not a valid file]\n")
 #             continue
 
-#         relative = file.relative_to(ROOT)
-
-#         print(relative)
-
-#         write_separator(out)
-
-#         out.write(f"FILE: {relative}\n")
-
-#         write_separator(out)
-
 #         try:
-#             text = file.read_text(encoding="utf-8")
-
+#             text = target_path.read_text(encoding="utf-8")
 #         except UnicodeDecodeError:
 #             out.write("[Binary / Non UTF-8 File]\n")
 #             continue
-
 #         except Exception as e:
 #             out.write(f"[Could not read file: {e}]\n")
 #             continue
@@ -208,6 +61,153 @@ print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
 #             out.write("\n")
 
 # print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
+
+
+from pathlib import Path
+import os
+
+ROOT = Path(".").resolve()
+OUTPUT_FILE = ROOT / "project_dump.txt"
+
+# -------------------------------
+# Directories to ignore
+# -------------------------------
+
+IGNORE_DIRS = {
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".idea",
+    ".vscode",
+    "node_modules",
+    "dist",
+    "build",
+    ".ruff_cache",
+    ".cache",
+    "models",          # GGUFs
+    "output",
+    "evaluation/reports",
+}
+
+# -------------------------------
+# File extensions to ignore
+# -------------------------------
+
+IGNORE_EXTENSIONS = {
+    ".pyc",
+    ".pyo",
+    ".pyd",
+    ".so",
+    ".dll",
+    ".exe",
+    ".bin",
+    ".gguf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".pdf",
+    ".zip",
+    ".tar",
+    ".gz",
+    ".7z",
+    ".mp4",
+    ".mov",
+    ".avi",
+    ".wav",
+    ".mp3",
+    ".csv",
+    ".sqlite",
+    ".db",
+    ".log",
+}
+
+# -------------------------------
+# Specific files to ignore
+# -------------------------------
+
+IGNORE_FILES = {
+    "project_dump.txt",
+    ".DS_Store",
+}
+
+MAX_FILE_SIZE = 1024 * 1024  # 1 MB
+
+
+def should_skip(path: Path):
+    parts = set(path.parts)
+
+    if parts & IGNORE_DIRS:
+        return True
+
+    if path.name in IGNORE_FILES:
+        return True
+
+    if path.suffix.lower() in IGNORE_EXTENSIONS:
+        return True
+
+    if not path.is_file():
+        return True
+
+    try:
+        if path.stat().st_size > MAX_FILE_SIZE:
+            return True
+    except Exception:
+        return True
+
+    return False
+
+
+def write_separator(f):
+    f.write("\n")
+    f.write("=" * 120)
+    f.write("\n\n")
+
+
+with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
+
+    out.write("# PROJECT DUMP\n")
+    out.write(f"# Root: {ROOT}\n\n")
+
+    files = sorted(ROOT.rglob("*"))
+
+    for file in files:
+
+        if should_skip(file):
+            continue
+
+        relative = file.relative_to(ROOT)
+
+        print(relative)
+
+        write_separator(out)
+
+        out.write(f"FILE: {relative}\n")
+
+        write_separator(out)
+
+        try:
+            text = file.read_text(encoding="utf-8")
+
+        except UnicodeDecodeError:
+            out.write("[Binary / Non UTF-8 File]\n")
+            continue
+
+        except Exception as e:
+            out.write(f"[Could not read file: {e}]\n")
+            continue
+
+        out.write(text)
+
+        if not text.endswith("\n"):
+            out.write("\n")
+
+print(f"\nDone!\nOutput written to:\n{OUTPUT_FILE}")
 
 # -------------------------------
 # -------------------------------

@@ -43,6 +43,11 @@ def estimate(
     )
 
     score = 0
+    if (
+        context.task_type.name == "MATH"
+        and not context.solved_locally
+    ):
+        return Difficulty.HARD
 
     if context.task_type is TaskType.CODE_GENERATION:
         score += 4

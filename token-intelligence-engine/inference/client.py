@@ -69,14 +69,30 @@ class FireworksClient:
             ]
 
             start = time.perf_counter()
+            try:
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    top_p=1,
+                    max_tokens=max_tokens,
+                )
+            except Exception as exc:
 
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                top_p=1,
-                max_tokens=max_tokens,
-            )
+                msg = str(exc)
+
+                if (
+                    "Floating point NaN" in msg
+                    or "invalid_request_error" in msg
+                    or "400" in msg
+                ):
+                    logger.warning(
+                        "Model %s failed. Returning empty answer.",
+                        model,
+                    )
+                    return ""
+
+                raise
 
             elapsed = time.perf_counter() - start
             logger.info("[FW] %.2fs", elapsed)

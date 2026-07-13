@@ -73,3 +73,52 @@ def extract_features(
             "=",
         )
     )
+
+    # -------------------------
+    # Router hints
+    # -------------------------
+
+    context.features["long_context"] = (
+        context.features["word_count"] > 250
+    )
+
+    context.features["many_numbers"] = (
+        context.features["number_count"] >= 8
+    )
+
+    context.features["structured_output"] = (
+        (
+            "json" in lower
+            or "xml" in lower
+            or "yaml" in lower
+            or "csv" in lower
+            or "markdown table" in lower
+            or "table" in lower
+            or "bullet" in lower
+            or "list" in lower
+        )
+        and not context.features["contains_code"]
+    )
+
+    context.features["semantic_task"] = any(
+        keyword in lower
+        for keyword in (
+            "summarize",
+            "summarise",
+            "summary",
+            "extract",
+            "entity",
+            "sentiment",
+            "classify",
+            "translate",
+            "explain",
+            "reason",
+            "analyze",
+            "analyse",
+        )
+    )
+
+    context.features["contains_math"] = (
+        context.features["operator_count"] >= 2
+        or context.features["many_numbers"]
+    )

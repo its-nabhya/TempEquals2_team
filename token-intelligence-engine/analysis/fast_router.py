@@ -60,7 +60,7 @@ MATH_PATTERNS = [
     r"\bseries\b",
     r"\bsimple interest\b",
     r"\bcompound interest\b",
-    r"\bpercentage\b",
+    # r"\bpercentage\b",
     r"\d+\s*=\s*\d+",
 ]
 
@@ -116,32 +116,54 @@ def is_ner(prompt: str) -> bool:
 def is_math(prompt: str) -> bool:
     text = prompt.lower()
 
-    # Don't steal clearly semantic tasks
-    if is_ner(text):
-        return False
 
+    # Don't classify semantic tasks as math
     if is_sentiment(text):
         return False
 
     if is_summary(text):
         return False
 
+    if is_ner(text):
+        return False
+
     score = 0
+        # Strong math keywords
+    strong = (
+        "solve for",
+        "derivative",
+        "integrate",
+        "integral",
+        "factorial",
+        "matrix",
+        "determinant",
+        "probability",
+        "modulo",
+        "fibonacci",
+        "quadratic",
+        "equation",
+        "hypotenuse",
+        "triangle",
+        "circle",
+        "radius",
+        "area",
+        "volume",
+        "limit",
+    )
 
-    # Regex evidence
-    score += sum(1 for r in MATH_REGEX if r.search(text))
+    for word in strong:
+        if word in text:
+            score += 3
 
-    # Additional lightweight heuristics
     operator_count = len(re.findall(r"[+\-*/=]", text))
     number_count = len(re.findall(r"\d+", text))
 
     if operator_count >= 2:
         score += 2
-
     elif operator_count == 1:
         score += 1
 
     if number_count >= 2:
         score += 1
 
-    return score >= 2
+    return score >= 3
